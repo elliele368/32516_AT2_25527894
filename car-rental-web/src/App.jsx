@@ -10,7 +10,7 @@ export default function App() {
     const isHome = location.pathname === "/";
 
     return (
-        <div className="min-h-screen bg-slate-100 overflow-hidden relative">
+        <div className="min-h-screen bg-slate-100 overflow-y-auto scrollbar-hide relative">
             {/* Show background image if on homepage */}
             {isHome && (
                 <>
@@ -55,7 +55,7 @@ export default function App() {
             )}
 
             {/* Routed content */}
-            <div className="relative z-20 pt-20 px-4">
+            <div className="relative z-20 pt-6">
                 <Routes>
                     <Route path="/" element={<Home />} />
                     <Route path="/reservation" element={<Reservation />} />

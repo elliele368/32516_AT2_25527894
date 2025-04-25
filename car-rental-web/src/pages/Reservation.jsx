@@ -1,7 +1,31 @@
+import { useState } from "react";
+import carListData from "../data/carList";
+import CarCard from "../components/CarCard";
+
 export default function Reservation() {
-    return (
-        <div className="text-center mt-24">
-            <h1 className="text-2xl font-bold text-gray-800">Reservation Page</h1>
-        </div>
+  const [cars, setCars] = useState(carListData);
+
+  const toggleReservation = (id) => {
+    setCars((prev) =>
+      prev.map((car) =>
+        car.id === id
+          ? { ...car, reserved: !car.reserved }
+          : car.reserved
+          ? { ...car, reserved: false }
+          : car
+      )
     );
+  };
+
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 px-6 py-10">
+      {cars.map((car) => (
+        <CarCard
+          key={car.id}
+          {...car}
+          onAction={() => toggleReservation(car.id)}
+        />
+      ))}
+    </div>
+  );
 }

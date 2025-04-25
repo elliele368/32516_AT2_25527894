@@ -25,7 +25,7 @@ export default function Header({ solid = false }) {
     const activeLinkClass = "font-semibold border-b-4 border-yellow-500 text-transparent bg-clip-text"; // active link class
 
     return (
-        <header className={`fixed top-0 left-0 w-full z-50 transition-all duration-300 h-16 px-10 inline-flex justify-between items-center 
+        <header className={`fixed top-0 left-0 w-full z-50 transition-all duration-200 h-16 px-10 inline-flex justify-between items-center 
     ${solidHeader ? "bg-white shadow-lg border-b border-gray-200 text-gray-500" : "bg-transparent text-white"}`}>
 
             {/* logo and name */}

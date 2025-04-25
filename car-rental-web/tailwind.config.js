@@ -7,5 +7,29 @@ export default {
   theme: {
     extend: {},
   },
-  plugins: [],
+  plugins: [
+    function({ addBase, addUtilities }) {
+      // Áp dụng cho toàn bộ trang
+      addBase({
+        'html': {
+          '-ms-overflow-style': 'none',
+          'scrollbar-width': 'none',
+        },
+        'html::-webkit-scrollbar': {
+          display: 'none',
+        },
+      });
+      
+      // Tạo class utility để áp dụng cho các phần tử riêng lẻ
+      addUtilities({
+        '.scrollbar-hide': {
+          '-ms-overflow-style': 'none',
+          'scrollbar-width': 'none',
+          '&::-webkit-scrollbar': {
+            display: 'none',
+          },
+        },
+      });
+    },
+  ],
 }

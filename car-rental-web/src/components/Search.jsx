@@ -33,7 +33,7 @@ export default function Search() {
         </div>
 
         {/* Search button */}
-        <div className="w-28 self-stretch px-5 bg-yellow-500 flex justify-center items-center gap-2 cursor-pointer hover:bg-yellow-600 transition-colors">
+        <div className="w-28 self-stretch px-5 bg-[rgba(231,170,76,1)] flex justify-center items-center gap-2 cursor-pointer hover:bg-yellow-600 transition-colors">
           <div className="text-white text-base font-medium leading-snug tracking-tight">Search</div>
         </div>
       </div>
