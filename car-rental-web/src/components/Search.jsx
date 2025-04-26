@@ -28,7 +28,7 @@ export default function Search() {
           <input
             type="text"
             placeholder="Search for cars..."
-            className="flex-1 bg-transparent text-gray-800 placeholder-gray-400 text-base leading-snug tracking-tight focus:outline-none"
+            className="flex-1 bg-transparent text-gray-800 placeholder-gray-400 text-light leading-snug tracking-tight focus:outline-none"
           />
         </div>
 
