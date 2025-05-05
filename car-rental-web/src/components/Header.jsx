@@ -36,7 +36,7 @@ export default function Header({ solid = false }) {
                         <div className="self-stretch justify-center text-base font-bold uppercase leading-snug tracking-tight bg-gradient-to-l from-yellow-600 to-orange-300 bg-clip-text text-transparent">
                             ElCar Rental
                         </div>
-                        <div class="self-stretch h-4 justify-center text-xs font-normal opacity-80 leading-normal tracking-tight">Fast and convenient...</div>
+                        <div class="self-stretch h-5 justify-center text-xs font-normal opacity-80 leading-normal tracking-tight">Fast and convenient...</div>
                     </div>
                 </Link>
             </div>

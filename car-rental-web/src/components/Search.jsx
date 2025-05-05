@@ -31,7 +31,7 @@ export default function Search() {
             className="flex-1 bg-transparent text-gray-800 placeholder-gray-400 text-light leading-snug tracking-tight focus:outline-none"
           />
         </div>
-
+        
         {/* Search button */}
         <div className="w-28 self-stretch px-5 bg-[rgba(231,170,76,1)] flex justify-center items-center gap-2 cursor-pointer hover:bg-yellow-600 transition-colors">
           <div className="text-white text-base font-medium leading-snug tracking-tight">Search</div>

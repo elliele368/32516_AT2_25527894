@@ -49,10 +49,10 @@ export default function CarCard({ car, onAction }) {
         </div>
       </div>
 
-      <div className="w-full px-8 py-3 bg-neutral-50 rounded-tr-xl shadow-[4px_0px_12px_0px_rgba(0,0,0,0.04)] border-t border-slate-200 flex justify-between items-center">
+      <div className="w-full px-8 py-3 bg-neutral-50 rounded-md-tr-xl shadow-[4px_0px_12px_0px_rgba(0,0,0,0.04)] border-t border-slate-200 flex justify-between items-center">
         <div className="flex items-center gap-4">
           <div
-            className={`h-10 px-2 py-0.5 rounded flex items-center ${
+            className={`h-10 px-2 py-0.5 rounded-md flex items-center ${
               available ? "bg-[rgba(225,240,233,1)] text-green-700" : "bg-slate-200 text-neutral-500"
             } text-sm font-normal`}
           >
@@ -67,21 +67,21 @@ export default function CarCard({ car, onAction }) {
         {available ? (
           reserved ? (
             <button
-              className="w-28 h-10 px-5 bg-white rounded shadow-[0px_4px_12px_0px_rgba(0,0,0,0.02)] outline outline-1 outline-offset-[-1px] outline-zinc-200 flex justify-center items-center gap-2"
+              className="w-28 h-10 px-5 bg-white rounded-md shadow-[0px_4px_12px_0px_rgba(0,0,0,0.02)] outline outline-1 outline-offset-[-1px] outline-zinc-200 flex justify-center items-center gap-2"
               onClick={handleAction}
             >
               <span className="text-neutral-500 text-base font-semibold">Cancel</span>
             </button>
           ) : (
             <button
-              className="w-28 h-10 px-5 bg-[rgba(231,170,76,1)] rounded shadow-[0px_4px_12px_0px_rgba(0,0,0,0.02)] flex justify-center items-center gap-2 text-white font-semibold text-base hover:bg-yellow-600 transition"
+              className="w-28 h-10 px-5 bg-[rgba(231,170,76,1)] rounded-md shadow-[0px_4px_12px_0px_rgba(0,0,0,0.02)] flex justify-center items-center gap-2 outline-zinc-200 text-white font-semibold text-base hover:bg-yellow-600 transition"
               onClick={handleAction}
             >
               Rent
             </button>
           )
         ) : (
-          <div className="w-28 h-10 px-5 bg-neutral-300 rounded shadow-[0px_4px_12px_0px_rgba(0,0,0,0.02)] flex justify-center items-center gap-2 text-white font-semibold text-base">
+          <div className="w-28 h-10 px-5 bg-neutral-300 rounded-md shadow-[0px_4px_12px_0px_rgba(0,0,0,0.02)] flex justify-center items-center gap-2 text-white font-semibold text-base">
             Rent
           </div>
         )}
