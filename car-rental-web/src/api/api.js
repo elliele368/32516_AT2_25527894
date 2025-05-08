@@ -31,4 +31,31 @@ export const getCarById = async (id) => {
   }
 };
 
+export const getFilteredCars = async ({ search = '', brand = [], type = [] }) => {
+  try {
+    const queryParams = new URLSearchParams();
+
+    if (search) queryParams.append('search', search);
+    if (brand.length > 0 && !brand.includes('All')) queryParams.append('brand', brand.join(','));
+    if (type.length > 0 && !type.includes('All')) queryParams.append('type', type.join(','));
+
+    const response = await api.get(`/cars?${queryParams.toString()}`);
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching filtered cars:", error);
+    throw error;
+  }
+};
+
+export const getSuggestions = async (searchText) => {
+  try {
+    const response = await api.get(`/cars?search=${encodeURIComponent(searchText)}`);
+    console.log("Suggestions API response:", response.data);
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching suggestions:", error);
+    return [];
+  }
+};
+
 export default api;

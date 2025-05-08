@@ -121,7 +121,7 @@ export default function App() {
             )}
 
             {/* Routed content */}
-            <div className="relative z-20 pt-6">
+            <div className="relative z-[1] pt-6">
                 <Routes>
                     <Route
                       path="/"
