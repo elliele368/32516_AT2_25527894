@@ -15,12 +15,11 @@ export default function SearchDropdown({ suggestions, onSuggestionClick, isVisib
 
   return (
     <div 
-      className="fixed bg-white rounded-lg shadow-lg border border-gray-200 max-h-80 overflow-y-auto z-[9999]"
+      className="absolute bg-white rounded-lg shadow-lg border border-gray-200 max-h-80 overflow-y-auto z-[50] mt-1"
       style={{
-        top: 'auto', // Use auto instead of a fixed position
-        left: 0,
-        right: 0,
-        display: 'block' // Force display block
+    // Full width
+        display: 'block', // Force display block
+        width: '100%', // Full width
       }}
     >
       {suggestions.map((suggestion, index) => (
@@ -32,7 +31,7 @@ export default function SearchDropdown({ suggestions, onSuggestionClick, isVisib
             console.log('Suggestion clicked:', suggestion);
           }}
         >
-          <div className="w-6 h-6 relative overflow-hidden">
+          <div className="w-6 h-6 flex items-center justify-center">
             <img src="/src/assets/search.svg" alt="search icon" className="w-4 h-4" />
           </div>
           <div className="text-black text-base">

@@ -105,9 +105,9 @@ export default function Search() {
       />
 
       {/* Search input + button */}
-      <div className="flex-1 self-stretch rounded-lg outline outline-1 outline-offset-[-1px] outline-gray-200 flex justify-start items-center overflow-hidden">
+      <div className="flex-1 self-stretch rounded-lg outline outline-1 outline-offset-[-1px] outline-gray-200 flex justify-start items-center">
         <div className="relative w-full">
-          <div className="flex-1 h-11 px-4 flex justify-start items-center gap-2">
+          <div className="flex-1 h-11 px-4 flex justify-start items-center gap-2 rounded-lg over">
             {/* icon placeholder */}
             <div className="w-6 h-6 relative overflow-hidden flex items-center">
               <div className="w-6 h-6 left-0 top-0 absolute" />
@@ -123,7 +123,7 @@ export default function Search() {
           </div>
           
           {/* Ensure the dropdown container is positioned correctly */}
-          <div className="absolute top-full left-0 right-0 mt-1" style={{ position: 'absolute', zIndex: 9999 }}>
+          <div className="absolute nmm top-full left-0 right-0 mt-1" >
             <SearchDropdown
               suggestions={suggestions}
               onSuggestionClick={(value) => {
@@ -138,7 +138,7 @@ export default function Search() {
         
         {/* Search button */}
         <div
-          className={`w-28 self-stretch px-5 ${
+          className={`w-28 self-stretch px-5 rounded-tr-lg rounded-br-lg ${
             isSearchEnabled ? 'bg-[rgba(231,170,76,1)] hover:bg-yellow-600 cursor-pointer' : 'bg-gray-300 cursor-not-allowed'
           } flex justify-center items-center gap-2 transition-colors`}
         >
