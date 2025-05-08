@@ -318,7 +318,7 @@ export default function RentalForm({ car, onCancel }) {
             </div>
             <div className="self-stretch h-8 py-2 inline-flex justify-between items-center">
               <span className="text-neutral-500 text-lg font-normal font-['Arial'] leading-7 tracking-tight">Total price</span>
-              <span className="text-yellow-600 text-3xl font-bold font-['Arial'] leading-7">${total}</span>
+              <span className="text-yellow-600 text-2xl font-semibold font-['Arial'] leading-7">${total}</span>
             </div>
           </div>
         </div>
@@ -327,8 +327,6 @@ export default function RentalForm({ car, onCancel }) {
           <button
             type="button"
             onClick={() => {
-              localStorage.removeItem("rentalForm");
-              setForm(defaultForm);
               onCancel(car.vin);
             }}
             className="w-28 self-stretch px-5 bg-white rounded-lg shadow-sm outline outline-1 outline-offset-[-1px] outline-zinc-200"

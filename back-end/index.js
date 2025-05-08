@@ -33,11 +33,13 @@ app.get('/cars', async (req, res) => {
     }
 
     if (brand) {
-      query.brand = brand;
+      const brands = brand.split(','); // support multiple brands
+      query.brand = { $in: brands };
     }
 
     if (type) {
-      query.type = type;
+      const types = type.split(','); // support multiple types
+      query.type = { $in: types };
     }
 
     const cars = await Car.find(query);

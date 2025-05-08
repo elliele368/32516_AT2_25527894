@@ -47,6 +47,11 @@ export default function Reservation({ setModalOverlay }) {
       }
 
       alert('Car reserved successfully!');
+      setCars((prevCars) =>
+        prevCars.map((car) =>
+          car.vin === vin ? { ...car, reserved: true } : { ...car, reserved: false }
+        )
+      );
       navigate('/reservations');
     } catch (error) {
       console.error('Error reserving car:', error);
@@ -70,7 +75,9 @@ export default function Reservation({ setModalOverlay }) {
 
       // Refresh the list of reserved cars
       setCars((prevCars) => prevCars.map(car => car.vin === vin ? { ...car, reserved: false } : car));
+      localStorage.removeItem("rentalForm");
       navigate('/');
+      window.dispatchEvent(new Event("carDataUpdated"));
     } catch (error) {
       console.error('Error cancelling reservation:', error);
       alert('Could not cancel the reservation. Please try again.');

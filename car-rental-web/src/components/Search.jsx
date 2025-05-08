@@ -1,4 +1,12 @@
+import { useState } from 'react';
+
 export default function Search() {
+  const [searchText, setSearchText] = useState('');
+  const [brandFilter, setBrandFilter] = useState('All');
+  const [typeFilter, setTypeFilter] = useState('All');
+
+  const isSearchEnabled = searchText.trim() !== '' || brandFilter !== 'All' || typeFilter !== 'All';
+
   return (
     <div className="self-stretch h-12 inline-flex justify-start items-center gap-3">
       {/* Car Brands */}
@@ -28,12 +36,18 @@ export default function Search() {
           <input
             type="text"
             placeholder="Search for cars..."
+            value={searchText}
+            onChange={(e) => setSearchText(e.target.value)}
             className="flex-1 bg-transparent text-gray-800 placeholder-gray-400 text-light leading-snug tracking-tight focus:outline-none"
           />
         </div>
         
         {/* Search button */}
-        <div className="w-28 self-stretch px-5 bg-[rgba(231,170,76,1)] flex justify-center items-center gap-2 cursor-pointer hover:bg-yellow-600 transition-colors">
+        <div
+          className={`w-28 self-stretch px-5 ${
+            isSearchEnabled ? 'bg-[rgba(231,170,76,1)] hover:bg-yellow-600 cursor-pointer' : 'bg-gray-300 cursor-not-allowed'
+          } flex justify-center items-center gap-2 transition-colors`}
+        >
           <div className="text-white text-base font-medium leading-snug tracking-tight">Search</div>
         </div>
       </div>

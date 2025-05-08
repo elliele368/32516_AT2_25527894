@@ -30,7 +30,7 @@ export default function CarSummary({ car }) {
             </div>
           </div>
         </div>
-        <div className="self-stretch text-center justify-center text-neutral-500 text-xl font-normal  leading-snug tracking-tight">
+        <div className="self-stretch text-center justify-center text-neutral-500 text-xl font-light leading-snug tracking-tight">
           {description}
         </div>
       </div>
