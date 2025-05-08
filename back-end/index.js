@@ -53,6 +53,53 @@ app.get('/cars', async (req, res) => {
   }
 });
 
+// Reserve a car by VIN
+app.put('/api/cars/:vin/reserve', async (req, res) => {
+  try {
+    const { vin } = req.params;
+
+    // Reset all reserved cars
+    await Car.updateMany({ reserved: true }, { reserved: false });
+
+    // Reserve the selected car
+    const car = await Car.findOneAndUpdate(
+      { vin },
+      { reserved: true },
+      { new: true }
+    );
+
+    if (!car) {
+      return res.status(404).json({ message: 'Car not found' });
+    }
+
+    res.status(200).json({ message: 'Car reserved successfully', data: car });
+  } catch (error) {
+    console.error('Error reserving car:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
+// Cancel a reservation by VIN
+app.put('/api/cars/:vin/cancel', async (req, res) => {
+  try {
+    const { vin } = req.params;
+
+    const car = await Car.findOneAndUpdate(
+      { vin },
+      { reserved: false },
+      { new: true }
+    );
+
+    if (!car) {
+      return res.status(404).json({ message: 'Car not found' });
+    }
+
+    res.status(200).json({ message: 'Reservation cancelled successfully', data: car });
+  } catch (error) {
+    console.error('Error cancelling reservation:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
 
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);

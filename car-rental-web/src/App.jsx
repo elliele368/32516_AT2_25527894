@@ -4,10 +4,12 @@ import { Routes, Route, useLocation } from "react-router-dom";
 import Home from "./pages/Home";
 import Reservation from "./pages/Reservation";
 import backgroundImage from "./assets/header-bg.png";
+import { useState } from "react";
 
 export default function App() {
     const location = useLocation();
     const isHome = location.pathname === "/";
+    const [modalOverlay, setModalOverlay] = useState(null);
 
     return (
         <div className="min-h-screen bg-slate-100 overflow-y-auto scrollbar-hide relative">
@@ -58,9 +60,15 @@ export default function App() {
             <div className="relative z-20 pt-6">
                 <Routes>
                     <Route path="/" element={<Home />} />
-                    <Route path="/reservation" element={<Reservation />} />
+                    <Route path="/reservation" element={<Reservation setModalOverlay={setModalOverlay} />} />
                 </Routes>
             </div>
+
+            {modalOverlay && (
+              <div className="fixed inset-0 z-50 bg-zinc-900/80 backdrop-blur-[2px] flex justify-center items-center">
+                {modalOverlay}
+              </div>
+            )}
         </div>
     );
 }

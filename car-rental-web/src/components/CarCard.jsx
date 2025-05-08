@@ -1,4 +1,4 @@
-export default function CarCard({ car, onAction }) {
+export default function CarCard({ car, onRent, onCancel }) {
   const {
     name,
     year,
@@ -11,8 +11,29 @@ export default function CarCard({ car, onAction }) {
     image
   } = car;
 
-  const handleAction = () => {
-    if (onAction) onAction();
+  const handleClick = async () => {
+    if (reserved && onCancel) {
+      try {
+        const response = await fetch(`http://localhost:3002/api/cars/${car.vin}/cancel`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          }
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to cancel reservation');
+        }
+
+        // alert('Reservation cancelled.');
+        onCancel(); // trigger UI update
+      } catch (error) {
+        console.error('Cancel error:', error);
+        alert('Failed to cancel reservation.');
+      }
+    } else if (!reserved && onRent) {
+      onRent();
+    }
   };
 
   return (
@@ -68,14 +89,14 @@ export default function CarCard({ car, onAction }) {
           reserved ? (
             <button
               className="w-28 h-10 px-5 bg-white rounded-md shadow-[0px_4px_12px_0px_rgba(0,0,0,0.02)] outline outline-1 outline-offset-[-1px] outline-zinc-200 flex justify-center items-center gap-2"
-              onClick={handleAction}
+              onClick={handleClick}
             >
               <span className="text-neutral-500 text-base font-semibold">Cancel</span>
             </button>
           ) : (
             <button
               className="w-28 h-10 px-5 bg-[rgba(231,170,76,1)] rounded-md shadow-[0px_4px_12px_0px_rgba(0,0,0,0.02)] flex justify-center items-center gap-2 outline-zinc-200 text-white font-semibold text-base hover:bg-yellow-600 transition"
-              onClick={handleAction}
+              onClick={handleClick}
             >
               Rent
             </button>

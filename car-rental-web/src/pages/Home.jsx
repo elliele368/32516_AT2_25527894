@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import CarCard from "../components/CarCard";
 import { getCars } from "../api/api";
 
@@ -6,6 +7,7 @@ export default function Home() {
   const [cars, setCars] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchCars = async () => {
@@ -25,6 +27,27 @@ export default function Home() {
 
     fetchCars();
   }, []);
+
+  const handleRent = async (vin) => {
+    try {
+      const response = await fetch(`http://localhost:3002/api/cars/${vin}/reserve`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ reserved: true }),
+      });
+
+      if (!response.ok) throw new Error("Failed to reserve car");
+
+      // alert("Car reserved successfully!");
+      navigate("/reservation");
+    } catch (err) {
+      console.error("Error reserving car:", err);
+      alert("Could not complete reservation.");
+    }
+  };
+
 
   return (
     <div className="relative z-20 flex justify-center mb-[40px]">
@@ -47,7 +70,12 @@ export default function Home() {
           <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-6">
             {cars.length > 0 ? (
               cars.map((car) => (
-                <CarCard key={car.vin || car.id} car={car} />
+                <CarCard
+                  key={car.vin || car.id}
+                  car={car}
+                  onRent={() => handleRent(car.vin)}
+                  onCancel={() => setCars((prevCars) => prevCars.map(c => c.vin === car.vin ? { ...c, reserved: false } : c))}
+                />
               ))
             ) : (
               <div className="col-span-2 text-center text-gray-500 py-8">
