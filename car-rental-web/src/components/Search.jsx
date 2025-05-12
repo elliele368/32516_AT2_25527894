@@ -51,13 +51,11 @@ export default function Search() {
       }
       try {
         const results = await getSuggestions(searchText.trim());
-        console.log("Suggestions API response:", results);
         
         // Check if results.data exists and is an array
         if (results && results.data && Array.isArray(results.data)) {
           // Extract car names for the dropdown
           const suggestionsData = results.data.map(car => car.name || car.title || "Unnamed");
-          console.log("Processed suggestions:", suggestionsData);
           setSuggestions(suggestionsData);
         } else {
           console.warn("Unexpected suggestions format:", results);

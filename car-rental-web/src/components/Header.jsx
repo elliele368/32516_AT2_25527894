@@ -29,14 +29,14 @@ export default function Header({ solid = false }) {
     ${solidHeader ? "bg-white shadow-lg border-b border-gray-200 text-gray-500" : "bg-transparent text-white"}`}>
 
             {/* logo and name */}
-            <div class="inline-flex justify-start items-center gap-3">
+            <div className="inline-flex justify-start items-center gap-3">
                 <Link to="/" className="flex items-center space-x-2 font-bold text-xl">
                     <img src={logo} alt="ELcar logo" className="h-8 w-auto" />
-                    <div class="w-36 inline-flex flex-col justify-start items-start gap-0.5">
+                    <div className="w-36 inline-flex flex-col justify-start items-start gap-0.5">
                         <div className="self-stretch justify-center text-base font-bold uppercase leading-snug tracking-tight bg-gradient-to-l from-yellow-600 to-orange-300 bg-clip-text text-transparent">
                             ElCar Rental
                         </div>
-                        <div class="self-stretch h-5 justify-center text-xs font-normal opacity-80 leading-normal tracking-tight">Fast and convenient...</div>
+                        <div className="self-stretch h-5 justify-center text-xs font-normal opacity-80 leading-normal tracking-tight">Fast and convenient...</div>
                     </div>
                 </Link>
             </div>

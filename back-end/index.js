@@ -55,6 +55,21 @@ app.get('/cars', async (req, res) => {
   }
 });
 
+// suggestions for car names
+app.get('/cars/suggestions', async (req, res) => {
+  try {
+    const { search } = req.query;
+    const suggestions = await Car.find({
+      $or: [
+        { name: { $regex: search, $options: 'i' } },]
+    });
+    res.status(200).json({ message: 'Suggestions fetched successfully', data: suggestions });
+  } catch (error) {
+    console.error('Error fetching suggestions:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
 // Reserve a car by VIN
 app.put('/api/cars/:vin/reserve', async (req, res) => {
   try {
