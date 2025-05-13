@@ -3,6 +3,7 @@ import CarSummary from "../components/CarSummary";
 import RentalForm from "../components/RentalForm";
 import Modal from "../components/Modal";
 import cancelImage from "../assets/cancel.svg";
+import rentPendingImage from "../assets/rent-pending.svg";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { getCars } from "../api/api";
@@ -116,6 +117,28 @@ export default function Reservation({ setModalOverlay }) {
     );
   };
 
+  const showConfirmPendingModal = (reservedCar) => {
+    setModalOverlay(
+      <Modal
+        title="Rental Confirmation"
+        status="Pending"
+        image={rentPendingImage}
+        message="You are about to confirm your order..."
+        description="Your order has been placed but is not yet confirmed. Please confirm your order by clicking the button below."
+        buttons={[
+          <button
+            key="confirm"
+            className="w-full h-11 bg-[rgba(231,170,76,1)] rounded-lg shadow-sm text-white text-base font-bold"
+            onClick={() => setModalOverlay(null)}
+          >
+            Confirm your rent
+          </button>
+        ]}
+        onClose={() => setModalOverlay(null)}
+      />
+    );
+  };
+
   if (loading) {
     return <div className="text-center py-10">Loading available cars...</div>;
   }
@@ -132,7 +155,11 @@ export default function Reservation({ setModalOverlay }) {
         <div className="relative z-20 flex justify-center">
           <div className="w-[1200px] pt-16 mb-4 inline-flex justify-between items-center">
             <CarSummary car={reservedCar} />
-            <RentalForm car={reservedCar} onCancel={() => showCancelModal(reservedCar)} />
+            <RentalForm
+              car={reservedCar}
+              onCancel={() => showCancelModal(reservedCar)}
+              onConfirmPending={() => showConfirmPendingModal(reservedCar)}
+            />
           </div>
         </div>
       ) : (

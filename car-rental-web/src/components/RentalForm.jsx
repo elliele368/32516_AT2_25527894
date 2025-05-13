@@ -3,7 +3,7 @@ import DatePicker from "./DatePicker";
 import checkIcon from "../assets/check-outline.svg";
 import infoIcon from "../assets/info.svg";
 
-export default function RentalForm({ car, onCancel }) {
+export default function RentalForm({ car, onCancel, onConfirmPending }) {
   const defaultForm = {
     name: "",
     phone: "",
@@ -113,7 +113,7 @@ export default function RentalForm({ car, onCancel }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+    onConfirmPending(); // Show confirmation modal
     try {
       setIsSubmitting(true);
       
@@ -164,12 +164,9 @@ export default function RentalForm({ car, onCancel }) {
       // Here you would make an API call to save the reservation
       // const response = await rentalService.createRental(rentalSubmission);
       
-      // For now, just show success message
-      alert(`Reservation submitted successfully!\nDays: ${days}\nTotal: $${total}`);
-      
-      // Clear form after successful submission
-      setForm(defaultForm);
-      localStorage.removeItem("rentalForm");
+      // KHÔNG XÓA form tại đây nữa
+      // setForm(defaultForm);
+      // localStorage.removeItem("rentalForm");
       
     } catch (error) {
       console.error('Error submitting form:', error);
