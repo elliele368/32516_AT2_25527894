@@ -37,12 +37,11 @@ export default function SearchDropdown({ suggestions, onSuggestionClick, isVisib
               if (!searchKeyword) return suggestion.label;
               const regex = new RegExp(`(${searchKeyword})`, 'gi');
               const parts = suggestion.label.split(regex);
-              return parts.map((part, i) => {
-                const regexInner = new RegExp(`(${searchKeyword})`, 'i');
-                return regexInner.test(part)
-                  ? <span key={i} className="bg-yellow-200">{part}</span>
-                  : part;
-              });
+              return parts.map((part, i) =>
+                regex.test(part)
+                  ? <span key={i} className="font-medium text-[rgb(211,152,62)]">{part}</span>
+                  : <span key={i}>{part}</span>
+              );
             })()}
           </div>
         </div>

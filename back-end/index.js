@@ -26,22 +26,35 @@ app.get('/cars', async (req, res) => {
     const query = {};
 
     if (search) {
-      const keywords = search.split(/[,\s/]+/).filter(Boolean); // split by comma, space, or slash
-
-      query.$or = [
-        { name: { $regex: search, $options: 'i' } },
-        { description: { $regex: search, $options: 'i' } },
-        { brand: { $in: keywords.map(k => new RegExp(k, 'i')) } }
-      ];
+      if (search.startsWith('"') && search.endsWith('"')) {
+        const exact = search.slice(1, -1); // remove quotes
+        query.$or = [
+          { name: exact },
+          { brand: exact }
+        ];
+      } else {
+        const keywords = search.split(/[,\s/]+/).filter(Boolean);
+        query.$or = [
+          { name: { $regex: search, $options: 'i' } },
+          { description: { $regex: search, $options: 'i' } },
+          { brand: { $in: keywords.map(k => new RegExp(k, 'i')) } }
+        ];
+      }
     }
 
-    if (brand) {
-      const brands = brand.split(','); // support multiple brands
+    if (brand !== undefined) {
+      const brands = brand.split(',').filter(Boolean);
+      if (brands.length === 0) {
+        return res.status(200).json({ message: 'No cars found', data: [] });
+      }
       query.brand = { $in: brands };
     }
 
-    if (type) {
-      const types = type.split(','); // support multiple types
+    if (type !== undefined) {
+      const types = type.split(',').filter(Boolean);
+      if (types.length === 0) {
+        return res.status(200).json({ message: 'No cars found', data: [] });
+      }
       query.type = { $in: types };
     }
 

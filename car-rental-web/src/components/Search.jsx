@@ -59,11 +59,15 @@ export default function Search() {
         if (results && results.data && Array.isArray(results.data)) {
           // Tạo một Set để lưu trữ các suggestions đã thêm
           const uniqueSuggestions = new Set();
+          const keyword = searchText.trim().toLowerCase();
           
           // Xử lý suggestions
           const suggestionsData = results.data.reduce((acc, car) => {
-            // Thêm brand nếu chưa có trong suggestions
-            if (car.brand && !uniqueSuggestions.has(car.brand)) {
+            if (
+              car.brand &&
+              !uniqueSuggestions.has(car.brand) &&
+              car.brand.toLowerCase().includes(keyword)
+            ) {
               uniqueSuggestions.add(car.brand);
               acc.push({
                 type: 'brand',
@@ -71,9 +75,12 @@ export default function Search() {
                 label: car.brand
               });
             }
-            
-            // Thêm tên xe nếu chưa có trong suggestions
-            if (car.name && !uniqueSuggestions.has(car.name)) {
+
+            if (
+              car.name &&
+              !uniqueSuggestions.has(car.name) &&
+              car.name.toLowerCase().includes(keyword)
+            ) {
               uniqueSuggestions.add(car.name);
               acc.push({
                 type: 'car',
@@ -81,7 +88,7 @@ export default function Search() {
                 label: `${car.name}`
               });
             }
-            
+
             return acc;
           }, []);
 
@@ -113,8 +120,8 @@ export default function Search() {
 
     const searchParams = new URLSearchParams();
     if (searchValue.trim()) searchParams.set('search', searchValue.trim());
-    if (brandFilter.length > 0 && !brandFilter.includes('All')) searchParams.set('brand', brandFilter.join(','));
-    if (typeFilter.length > 0 && !typeFilter.includes('All')) searchParams.set('type', typeFilter.join(','));
+    if (!brandFilter.includes('All')) searchParams.set('brand', brandFilter.join(','));
+    if (!typeFilter.includes('All')) searchParams.set('type', typeFilter.join(','));
 
     navigate(`/search?${searchParams.toString()}`);
   };
@@ -171,10 +178,17 @@ export default function Search() {
               suggestions={suggestions}
               onSuggestionClick={(suggestion) => {
                 setSearchText(suggestion.value);
-                setSuggestions([]); // Clear suggestions after selection
-                handleSearch(suggestion.value); // Chuyển hướng đến trang search với giá trị suggestion
+                setSuggestions([]);
+
+                const isCar = suggestion.type === 'car';
+                const finalSearchValue = isCar
+                  ? `"${suggestion.value}"`
+                  : suggestion.value;
+
+                handleSearch(finalSearchValue);
               }}
               isVisible={searchText.trim() !== '' && suggestions.length > 0}
+              searchKeyword={searchText}
             />
           </div>
         </div>
