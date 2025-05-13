@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import { getFilteredCars } from '../api/api';
 import CarCard from '../components/CarCard';
 
@@ -8,6 +8,7 @@ export default function SearchResults() {
   const [cars, setCars] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchFilteredCars = async () => {
@@ -30,6 +31,36 @@ export default function SearchResults() {
 
     fetchFilteredCars();
   }, [searchParams]);
+
+  const handleRent = async (vin) => {
+    try {
+      const response = await fetch(`http://localhost:3002/api/cars/${vin}/reserve`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ reserved: true }),
+      });
+      if (!response.ok) throw new Error("Failed to reserve car");
+      navigate("/reservation");
+    } catch (err) {
+      console.error("Error reserving car:", err);
+      alert("Could not complete reservation.");
+    }
+  };
+
+  const handleCancel = async (vin) => {
+    try {
+      const response = await fetch(`http://localhost:3002/api/cars/${vin}/cancel`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ reserved: false }),
+      });
+      if (!response.ok) throw new Error("Failed to cancel reservation");
+      navigate("/");
+    } catch (err) {
+      console.error("Error cancelling reservation:", err);
+      alert("Could not cancel the reservation.");
+    }
+  };
 
   if (loading) {
     return (
@@ -57,7 +88,16 @@ export default function SearchResults() {
     // to update 
     <div className="relative z-20 flex justify-center mb-[40px] mt-[80px]">
       <div className="w-full max-w-[1200px] mx-4 sm:mx-6 md:mx-8 lg:mx-10 xl:mx-14 2xl:mx-20 px-8 pt-5 pb-6 bg-white rounded-lg shadow-[0px_4px_12px_0px_rgba(0,0,0,0.08)]">
-        <h2 className="w-full text-yellow-600 text-lg font-semibold text-center mb-6">SEARCH RESULTS</h2>
+        <div className="w-full mb-6">
+          <div className="flex justify-between items-center w-full">
+            <div className="text-yellow-600 text-lg font-semibold leading-7">SEARCH RESULTS</div>
+            <div className="h-9 px-2 py-0.5 bg-slate-200 rounded flex items-center gap-2.5">
+              <div className="text-neutral-500 text-base font-semibold leading-none tracking-tight">
+                {cars.length} result{cars.length !== 1 ? 's' : ''}
+              </div>
+            </div>
+          </div>
+        </div>
         
         {cars.length > 0 ? (
           <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -78,4 +118,4 @@ export default function SearchResults() {
       </div>
     </div>
   );
-} 
+}

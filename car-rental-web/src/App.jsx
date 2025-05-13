@@ -1,5 +1,6 @@
 import Header from "./components/Header";
 import Search from "./components/Search";
+import SearchResults from "./pages/SearchResults";
 import { Routes, Route, useLocation } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import Reservation from "./pages/Reservation";
@@ -183,6 +184,7 @@ export default function App() {
                         </div>
                       }
                     />
+                    <Route path="/search" element={<SearchResults />} />
                     <Route path="/reservation" element={<Reservation setModalOverlay={setModalOverlay} />} />
                 </Routes>
             </div>

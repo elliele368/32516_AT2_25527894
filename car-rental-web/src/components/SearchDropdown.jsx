@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 
-export default function SearchDropdown({ suggestions, onSuggestionClick, isVisible }) {
+export default function SearchDropdown({ suggestions, onSuggestionClick, isVisible, searchKeyword }) {
   useEffect(() => {
   }, [isVisible, suggestions]);
 
@@ -33,7 +33,17 @@ export default function SearchDropdown({ suggestions, onSuggestionClick, isVisib
             />
           </div>
           <div className="text-black text-base">
-            {suggestion.label}
+            {(() => {
+              if (!searchKeyword) return suggestion.label;
+              const regex = new RegExp(`(${searchKeyword})`, 'gi');
+              const parts = suggestion.label.split(regex);
+              return parts.map((part, i) => {
+                const regexInner = new RegExp(`(${searchKeyword})`, 'i');
+                return regexInner.test(part)
+                  ? <span key={i} className="bg-yellow-200">{part}</span>
+                  : part;
+              });
+            })()}
           </div>
         </div>
       ))}

@@ -26,9 +26,12 @@ app.get('/cars', async (req, res) => {
     const query = {};
 
     if (search) {
+      const keywords = search.split(/[,\s/]+/).filter(Boolean); // split by comma, space, or slash
+
       query.$or = [
         { name: { $regex: search, $options: 'i' } },
-        { description: { $regex: search, $options: 'i' } }
+        { description: { $regex: search, $options: 'i' } },
+        { brand: { $in: keywords.map(k => new RegExp(k, 'i')) } }
       ];
     }
 
