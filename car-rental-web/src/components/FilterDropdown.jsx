@@ -1,16 +1,5 @@
 import { useRef, useEffect, useState } from 'react';
 
-/**
- * A reusable dropdown filter component for selecting multiple options (with "All" support).
- *
- * Props:
- * - label: string - The dropdown label (e.g., "Car Brands", "Car Types")
- * - options: Array<{ value: string, label: string, icon?: string }>
- * - selectedOptions: string[] - The selected values (e.g., ["All"] or ["Toyota", ...])
- * - onChange: (newSelectedOptions: string[]) => void
- * - isActive: string|null - The label of the currently active dropdown
- * - setActiveDropdown: (label: string|null) => void - Callback to set the active dropdown
- */
 export default function FilterDropdown({ label, options, selectedOptions, onChange, isActive, setActiveDropdown }) {
   const dropdownRef = useRef(null);
   // Use internal state to control dropdown visibility
@@ -108,7 +97,11 @@ export default function FilterDropdown({ label, options, selectedOptions, onChan
         onClick={toggleDropdown}
       >
         <span className="text-base font-normal leading-snug tracking-tight">
-          {label} ({isAllSelected ? 'All' : selectedOptions.length})
+          {label} ({(() => {
+            if (isAllSelected) return 'All';
+            const filteredOptions = selectedOptions.filter(v => v !== 'All' && v !== '');
+            return filteredOptions.length;
+          })()})
         </span>
         <img
           src="/src/assets/arrow-down.svg"
