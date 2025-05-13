@@ -1,7 +1,7 @@
 import Header from "./components/Header";
 import Search from "./components/Search";
 import SearchResults from "./pages/SearchResults";
-import { Routes, Route, useLocation } from "react-router-dom";
+import { Routes, Route, useLocation, useSearchParams } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import Reservation from "./pages/Reservation";
 import backgroundImage from "./assets/header-bg.png";
@@ -19,6 +19,11 @@ export default function App() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const navigate = useNavigate();
+
+    const [searchParams] = useSearchParams();
+    const initialSearch = searchParams.get("search") || "";
+    const initialBrandFilter = searchParams.get("brand")?.split(",") || [];
+    const initialTypeFilter = searchParams.get("type")?.split(",") || [];
 
     useEffect(() => {
       const fetchCars = async () => {
@@ -184,7 +189,16 @@ export default function App() {
                         </div>
                       }
                     />
-                    <Route path="/search" element={<SearchResults />} />
+                    <Route
+                      path="/search"
+                      element={
+                        <SearchResults
+                          initialSearch={initialSearch}
+                          initialBrandFilter={initialBrandFilter}
+                          initialTypeFilter={initialTypeFilter}
+                        />
+                      }
+                    />
                     <Route path="/reservation" element={<Reservation setModalOverlay={setModalOverlay} />} />
                 </Routes>
             </div>

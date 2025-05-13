@@ -5,9 +5,10 @@ import FilterDropdown from './FilterDropdown';
 import SearchDropdown from './SearchDropdown';
 import { useNavigate } from 'react-router-dom';
 
-export default function Search() {
+export default function Search({ initialSearch = "", initialBrandFilter = [], initialTypeFilter = [] }) {
   const navigate = useNavigate();
   const [searchText, setSearchText] = useState('');
+  const [inputFocused, setInputFocused] = useState(false);
   
   // Define options
   const brandOptions = [
@@ -43,6 +44,14 @@ export default function Search() {
     getCars().then((data) => {
       setAllCars(data);
     });
+  }, []);
+
+  // One-time initialization for search/filter state (prevents infinite re-render loop)
+  useEffect(() => {
+    setSearchText(initialSearch);
+    setBrandFilter(initialBrandFilter.length > 0 ? initialBrandFilter : allBrands);
+    setTypeFilter(initialTypeFilter.length > 0 ? initialTypeFilter : allTypes);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -127,7 +136,7 @@ export default function Search() {
   };
 
   return (
-    <div className="self-stretch h-12 inline-flex justify-start items-center gap-3">
+    <div className="w-full h-12 inline-flex justify-start items-center gap-3">
       {/* Car Brands */}
       <FilterDropdown
         label="Car Brands"
@@ -162,6 +171,8 @@ export default function Search() {
               placeholder="Search for cars..."
               value={searchText}
               onChange={(e) => setSearchText(e.target.value)}
+              onFocus={() => setInputFocused(true)}
+              onBlur={() => setTimeout(() => setInputFocused(false), 200)}
               onKeyDown={(e) => {
                 if (e.key === 'Enter') {
                   e.preventDefault();
@@ -187,7 +198,7 @@ export default function Search() {
 
                 handleSearch(finalSearchValue);
               }}
-              isVisible={searchText.trim() !== '' && suggestions.length > 0}
+              isVisible={inputFocused && searchText.trim() !== '' && suggestions.length > 0}
               searchKeyword={searchText}
             />
           </div>

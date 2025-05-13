@@ -2,8 +2,9 @@ import { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { getFilteredCars } from '../api/api';
 import CarCard from '../components/CarCard';
+import Search from '../components/Search';
 
-export default function SearchResults() {
+export default function SearchResults({ initialSearch, initialBrandFilter, initialTypeFilter }) {
   const [searchParams] = useSearchParams();
   const [cars, setCars] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -86,27 +87,47 @@ export default function SearchResults() {
 
   if (error) {
     return (
-      <div className="w-full h-[600px] flex flex-col justify-center items-center bg-slate-100">
-        <div className="w-[550px] inline-flex flex-col justify-start items-center gap-3">
-          <div className="self-stretch h-80 relative overflow-hidden">
-            <img
-              src="./src/assets/blank.svg"
-              alt="Search error"
-              className="absolute inset-0 w-full h-full object-contain"
+      <>
+        <div className="w-full fixed top-[64px] z-[60] px-10 py-2 bg-white shadow-[0px_4px_12px_0px_rgba(0,0,0,0.04)] border-b border-zinc-200 flex justify-center items-center">
+          <div className="w-full max-w-[1200px]">
+            <Search
+              initialSearch={initialSearch}
+              initialBrandFilter={initialBrandFilter}
+              initialTypeFilter={initialTypeFilter}
             />
           </div>
-          <div className="self-stretch text-center justify-center text-neutral-500 text-base leading-snug tracking-tight">
-            No search results available. Please try a different keyword or filter.
+        </div>
+        <div className="w-full h-[600px] flex flex-col justify-center items-center bg-slate-100 pt-[124px]">
+          <div className="w-[550px] inline-flex flex-col justify-start items-center gap-3">
+            <div className="self-stretch h-80 relative overflow-hidden">
+              <img
+                src="./src/assets/blank.svg"
+                alt="Search error"
+                className="absolute inset-0 w-full h-full object-contain"
+              />
+            </div>
+            <div className="self-stretch text-center justify-center text-neutral-500 text-base leading-snug tracking-tight">
+              No search results available. Please try a different keyword or filter.
+            </div>
           </div>
         </div>
-      </div>
+      </>
     );
   }
 
   return (
     <>
+      <div className="w-full fixed top-[64px] z-[60] px-10 py-2 bg-white shadow-[0px_4px_12px_0px_rgba(0,0,0,0.04)] border-b border-zinc-200 flex justify-center items-center">
+        <div className="w-full max-w-[1200px]">
+          <Search
+            initialSearch={initialSearch}
+            initialBrandFilter={initialBrandFilter}
+            initialTypeFilter={initialTypeFilter}
+          />
+        </div>
+      </div>
       {cars.length > 0 ? (
-        <div className="relative z-20 flex justify-center mb-[40px] mt-[80px]">
+        <div className="relative z-20 flex justify-center mb-[40px] mt-[124px]">
           <div className="w-full max-w-[1200px] mx-4 sm:mx-6 md:mx-8 lg:mx-10 xl:mx-14 2xl:mx-20 px-8 pt-5 pb-6 bg-white rounded-lg shadow-[0px_4px_12px_0px_rgba(0,0,0,0.08)]">
             <div className="w-full mb-6">
               <div className="flex justify-between items-center w-full">
@@ -131,20 +152,31 @@ export default function SearchResults() {
           </div>
         </div>
       ) : (
-        <div className="w-full h-[600px] flex flex-col justify-center items-center bg-slate-100">
-          <div className="w-[550px] inline-flex flex-col justify-start items-center gap-3">
-            <div className="self-stretch h-80 relative overflow-hidden">
-              <img
-                src="./src/assets/blank.svg"
-                alt="No search results"
-                className="absolute inset-0 w-full h-full object-contain"
+        <>
+          <div className="w-full fixed top-[64px] z-[60] px-10 py-2 bg-white shadow-[0px_4px_12px_0px_rgba(0,0,0,0.04)] border-b border-zinc-200 flex justify-center items-center">
+            <div className="w-full max-w-[1200px]">
+              <Search
+                initialSearch={initialSearch}
+                initialBrandFilter={initialBrandFilter}
+                initialTypeFilter={initialTypeFilter}
               />
             </div>
-            <div className="self-stretch text-center justify-center text-neutral-500 text-base leading-snug tracking-tight">
-              No search results available. Please try a different keyword or filter.
+          </div>
+          <div className="w-full h-[600px] flex flex-col justify-center items-center bg-slate-100 pt-[124px]">
+            <div className="w-[550px] inline-flex flex-col justify-start items-center gap-3">
+              <div className="self-stretch h-80 relative overflow-hidden">
+                <img
+                  src="./src/assets/blank.svg"
+                  alt="No search results"
+                  className="absolute inset-0 w-full h-full object-contain"
+                />
+              </div>
+              <div className="self-stretch text-center justify-center text-neutral-500 text-base leading-snug tracking-tight">
+                No search results available. Please try a different keyword or filter.
+              </div>
             </div>
           </div>
-        </div>
+        </>
       )}
     </>
   );

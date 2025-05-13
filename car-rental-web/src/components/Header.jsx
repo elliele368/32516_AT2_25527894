@@ -26,7 +26,7 @@ export default function Header({ solid = false }) {
 
     return (
         <header className={`fixed top-0 left-0 w-full z-50 h-16 px-10 inline-flex justify-between items-center 
-    ${solidHeader ? "bg-white shadow-lg border-b border-gray-200 text-gray-500" : "bg-transparent text-white"}`}>
+    ${solidHeader ? "bg-white shadow-[0px_4px_12px_0px_rgba(0,0,0,0.04)] border-b border-gray-200 text-gray-500" : "bg-transparent text-white"}`}>
 
             {/* logo and name */}
             <div className="inline-flex justify-start items-center gap-3">
