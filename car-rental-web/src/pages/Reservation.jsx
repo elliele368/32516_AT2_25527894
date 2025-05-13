@@ -129,7 +129,122 @@ export default function Reservation({ setModalOverlay }) {
           <button
             key="confirm"
             className="w-full h-11 bg-[rgba(231,170,76,1)] rounded-lg shadow-sm text-white text-base font-bold"
-            onClick={() => setModalOverlay(null)}
+            onClick={async () => {
+              try {
+                // Retrieve rental information from localStorage
+                const formData = JSON.parse(localStorage.getItem("rentalForm"));
+                if (!formData) {
+                  throw new Error("Form data not found");
+                }
+
+                // Calculate rental information
+                const days = Math.max(
+                  1,
+                  Math.floor(
+                    (new Date(formData.end).getTime() - new Date(formData.start).getTime()) /
+                      (1000 * 60 * 60 * 24)
+                  )
+                );
+                const total = (reservedCar.price * days).toFixed(2);
+
+                // Create data to send to server
+                const rentalSubmission = {
+                  customerInfo: {
+                    name: formData.name,
+                    phone: formData.phone,
+                    email: formData.email,
+                    license: formData.license
+                  },
+                  rentalInfo: {
+                    startDate: formData.start,
+                    endDate: formData.end,
+                    days: days,
+                    pricePerDay: reservedCar?.price || 0,
+                    totalPrice: total
+                  },
+                  carInfo: {
+                    vin: reservedCar?.vin,
+                    brand: reservedCar?.brand,
+                    model: reservedCar?.model
+                  }
+                };
+
+                // Send rental request to server with logging for debugging
+                console.log("Sending rental submission:", rentalSubmission);
+                const response = await fetch('http://localhost:3002/api/rentals', {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                  },
+                  body: JSON.stringify(rentalSubmission),
+                });
+
+                console.log("Server response status:", response.status);
+                const responseData = await response.json();
+                console.log("Server response data:", responseData);
+
+                if (response.ok) {
+                  // Clear form data
+                  localStorage.removeItem("rentalForm");
+
+                  // Update state cars to remove reserved car
+                  setCars(prevCars => prevCars.filter(car => car.vin !== reservedCar.vin));
+                  
+                  // Hiển thị thông báo thành công
+                  alert('Your rental has been confirmed!');
+                  
+                  // Close modal and navigate
+                  setModalOverlay(null);
+                  navigate('/');
+                  
+                  // Update UI
+                  window.dispatchEvent(new Event("carDataUpdated"));
+                } else {
+                  // Check if the error is due to the car no longer being available
+                  if (!responseData.available) {
+                    // Call API to remove reserved status
+                    try {
+                      const cancelResponse = await fetch(`http://localhost:3002/api/cars/${reservedCar.vin}/cancel`, {
+                        method: 'PUT',
+                        headers: {
+                          'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ reserved: false }),
+                      });
+
+                      if (!cancelResponse.ok) {
+                        console.warn("Warning: Could not update car reserved status to false");
+                      } else {
+                        console.log("Successfully removed reserved status from car");
+                      }
+                    } catch (cancelError) {
+                      console.error("Error while removing reserved status:", cancelError);
+                    }
+
+                    // Show alert message
+                    alert(responseData.message || 'The car is no longer available, please choose another.');
+                    
+                    // Clear form data
+                    localStorage.removeItem("rentalForm");
+                    
+                    // Update state cars to remove reserved car
+                    setCars([]);
+                    
+                    // Close modal and navigate
+                    setModalOverlay(null);
+                    navigate('/');
+                    
+                    // Update UI
+                    window.dispatchEvent(new Event("carDataUpdated"));
+                  } else {
+                    throw new Error(`Failed to submit rental: ${responseData.message || "Unknown error"}`);
+                  }
+                }
+              } catch (error) {
+                console.error('Error confirming rental:', error);
+                alert('Could not confirm your rental. Please try again.');
+              }
+            }}
           >
             Confirm your rent
           </button>

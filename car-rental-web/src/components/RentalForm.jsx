@@ -113,7 +113,8 @@ export default function RentalForm({ car, onCancel, onConfirmPending }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    onConfirmPending(); // Show confirmation modal
+    onConfirmPending(); // Show confirmation modal, không xóa form
+    
     try {
       setIsSubmitting(true);
       
@@ -129,7 +130,6 @@ export default function RentalForm({ car, onCancel, onConfirmPending }) {
 
       // Prepare submission data
       const rentalSubmission = {
-        id: crypto.randomUUID(), // Generate unique ID
         customerInfo: {
           name: form.name,
           phone: form.phone,
@@ -144,29 +144,19 @@ export default function RentalForm({ car, onCancel, onConfirmPending }) {
           totalPrice: total
         },
         carInfo: {
-          id: car?.id,
           vin: car?.vin,
-          model: car?.model,
-          brand: car?.brand
+          brand: car?.brand,
+          model: car?.model
         },
         status: 'pending',
-        submittedAt: new Date().toISOString(),
-        metadata: {
-          browser: navigator.userAgent,
-          screenSize: `${window.innerWidth}x${window.innerHeight}`,
-          timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
-        }
+        submittedAt: new Date().toISOString()
       };
 
-      // Log form information as a single object
+      // Log form information
       console.log('Rental Submission:', rentalSubmission);
-
-      // Here you would make an API call to save the reservation
-      // const response = await rentalService.createRental(rentalSubmission);
       
-      // KHÔNG XÓA form tại đây nữa
-      // setForm(defaultForm);
-      // localStorage.removeItem("rentalForm");
+      // Form validation đã thành công, hiện Modal, nhưng chưa gửi đến server
+      // Việc gửi đến server sẽ được xử lý khi người dùng bấm Confirm trong Modal
       
     } catch (error) {
       console.error('Error submitting form:', error);

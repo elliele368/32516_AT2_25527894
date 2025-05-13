@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const rentalSchema = new mongoose.Schema({
   customerInfo: {
@@ -23,4 +23,5 @@ const rentalSchema = new mongoose.Schema({
   submittedAt: Date
 });
 
-module.exports = mongoose.model('Rental', rentalSchema);
+const Rental = mongoose.model('Rental', rentalSchema);
+export default Rental;

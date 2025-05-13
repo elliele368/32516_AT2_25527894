@@ -2,11 +2,23 @@ import express from 'express';
 import connectDB from './src/config/db.js';
 import dotenv from 'dotenv';
 import { Car } from './src/models/cars.model.js';
+import Rental from './src/models/rentals.model.js';
 import cors from 'cors';
+import mongoose from 'mongoose';
 
 dotenv.config();
 // Connect to MongoDB
 connectDB();
+
+const mongoURI = process.env.MONGO_URI;
+
+mongoose.connect(mongoURI, { useNewUrlParser: true, useUnifiedTopology: true })
+  .then(() => {
+    console.log('Connected to MongoDB successfully');
+  })
+  .catch((err) => {
+    console.error('Failed to connect to MongoDB', err);
+  });
 
 const app = express();
 const PORT = 3002;
@@ -131,6 +143,67 @@ app.put('/api/cars/:vin/cancel', async (req, res) => {
   } catch (error) {
     console.error('Error cancelling reservation:', error);
     res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
+// API endpoint to handle car rental
+app.post('/api/rentals', async (req, res) => {
+  try {
+    console.log('Received rental data:', req.body);
+    const rentalData = req.body;
+
+    // Check if car is still available before processing rental
+    const car = await Car.findOne({ vin: rentalData.carInfo.vin });
+
+    if (!car) {
+      return res.status(404).json({
+        message: 'Car not found',
+        available: false
+      });
+    }
+
+    if (!car.available) {
+      return res.status(400).json({
+        message: 'Car is no longer available. Please select another vehicle',
+        available: false
+      });
+    }
+
+    // Create new rental
+    const newRental = new Rental({
+      customerInfo: rentalData.customerInfo,
+      rentalInfo: rentalData.rentalInfo,
+      carInfo: rentalData.carInfo,
+      status: 'confirmed',
+      submittedAt: new Date()
+    });
+
+    // Save new rental
+    const savedRental = await newRental.save();
+    console.log('Saved rental:', savedRental);
+
+    // Update car status (available = false and reserved = false)
+    const updatedCar = await Car.findOneAndUpdate(
+      { vin: rentalData.carInfo.vin },
+      { available: false, reserved: false },
+      { new: true }
+    );
+
+    console.log('Updated car:', updatedCar);
+
+    res.status(201).json({
+      message: 'Rental submitted successfully',
+      rental: savedRental,
+      car: updatedCar,
+      available: true
+    });
+  } catch (error) {
+    console.error('Error placing rental:', error);
+    res.status(500).json({
+      message: 'Server error while processing rental',
+      error: error.message,
+      available: false
+    });
   }
 });
 
