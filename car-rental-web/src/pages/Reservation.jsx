@@ -4,9 +4,11 @@ import RentalForm from "../components/RentalForm";
 import Modal from "../components/Modal";
 import cancelImage from "../assets/cancel.svg";
 import rentPendingImage from "../assets/rent-pending.svg";
+import rentConfirmedImage from "../assets/rent-confirmed.svg";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { getCars } from "../api/api";
+import failImage from "../assets/blank.svg";
 
 export default function Reservation({ setModalOverlay }) {
   const [cars, setCars] = useState([]);
@@ -131,10 +133,13 @@ export default function Reservation({ setModalOverlay }) {
             className="w-full h-11 bg-[rgba(231,170,76,1)] rounded-lg shadow-sm text-white text-base font-bold"
             onClick={async () => {
               try {
+                // Log the value of rentalForm from localStorage for debugging
+                console.log("rentalForm from localStorage:", localStorage.getItem("rentalForm"));
                 // Retrieve rental information from localStorage
                 const formData = JSON.parse(localStorage.getItem("rentalForm"));
                 if (!formData) {
-                  throw new Error("Form data not found");
+                  console.error("Form data not found. Please complete the form before confirming.");
+                  return;
                 }
 
                 // Calculate rental information
@@ -190,13 +195,22 @@ export default function Reservation({ setModalOverlay }) {
                   // Update state cars to remove reserved car
                   setCars(prevCars => prevCars.filter(car => car.vin !== reservedCar.vin));
                   
-                  // Hiển thị thông báo thành công
-                  alert('Your rental has been confirmed!');
-                  
+                  // Show confirmation modal
+                  setModalOverlay(
+                    <Modal
+                      title="Rental Confirmation"
+                      status="Confirmed"
+                      image={rentConfirmedImage}
+                      message="Your order has been successfully confirmed!"
+                      description="The selected car is now reserved for you, and you will receive a confirmation email shortly. Thank you for choosing our service!"
+                      buttons={[]}
+                      onClose={() => {
+                        setModalOverlay(null);
+                        navigate('/');
+                      }}
+                    />
+                  );
                   // Close modal and navigate
-                  setModalOverlay(null);
-                  navigate('/');
-                  
                   // Update UI
                   window.dispatchEvent(new Event("carDataUpdated"));
                 } else {
@@ -221,18 +235,25 @@ export default function Reservation({ setModalOverlay }) {
                       console.error("Error while removing reserved status:", cancelError);
                     }
 
-                    // Show alert message
-                    alert(responseData.message || 'The car is no longer available, please choose another.');
+                    // Show modal message instead of alert
+                    setModalOverlay(
+                      <Modal
+                        title="Order Failed"
+                        image={failImage}
+                        message="Your order could not be completed..."
+                        description="The selected car is no longer available at the time of processing. Please choose another car and try again."
+                        onClose={() => {
+                          setModalOverlay(null);
+                          navigate('/');
+                        }}
+                      />
+                    );
                     
                     // Clear form data
                     localStorage.removeItem("rentalForm");
                     
                     // Update state cars to remove reserved car
                     setCars([]);
-                    
-                    // Close modal and navigate
-                    setModalOverlay(null);
-                    navigate('/');
                     
                     // Update UI
                     window.dispatchEvent(new Event("carDataUpdated"));

@@ -8,8 +8,12 @@ const Modal = ({ title, status, image, message, description, buttons, onClose })
         <div className="flex-1 flex justify-start items-center gap-2">
           <div className="text-zinc-700 text-xl font-bold leading-7">{title}</div>
           {status && (
-            <div className="h-9 px-2 py-0.5 bg-slate-200 rounded flex justify-center items-center gap-2.5">
-              <div className="text-neutral-500 text-base font-semibold leading-none tracking-tight">{status}</div>
+            <div className={`rounded flex justify-center items-center gap-2.5 ${
+              status === 'Confirmed'
+                ? 'bg-[rgba(225,240,233,1)] text-green-700 h-8 px-2'
+                : 'bg-slate-200 text-neutral-500 h-8 px-2'
+            }`}>
+              <div className="text-base font-semibold leading-none tracking-tight">{status}</div>
             </div>
           )}
         </div>
