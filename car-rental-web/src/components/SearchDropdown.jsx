@@ -2,11 +2,6 @@ import React, { useEffect } from 'react';
 
 export default function SearchDropdown({ suggestions, onSuggestionClick, isVisible }) {
   useEffect(() => {
-    console.log('SearchDropdown rendered:', { 
-      isVisible, 
-      suggestionsCount: suggestions?.length,
-      suggestions
-    });
   }, [isVisible, suggestions]);
 
   if (!isVisible || !suggestions || suggestions.length === 0) {
@@ -17,9 +12,8 @@ export default function SearchDropdown({ suggestions, onSuggestionClick, isVisib
     <div 
       className="absolute bg-white rounded-lg shadow-lg border border-gray-200 max-h-80 overflow-y-auto z-[50] mt-1"
       style={{
-    // Full width
-        display: 'block', // Force display block
-        width: '100%', // Full width
+        display: 'block',
+        width: '100%',
       }}
     >
       {suggestions.map((suggestion, index) => (
@@ -32,10 +26,14 @@ export default function SearchDropdown({ suggestions, onSuggestionClick, isVisib
           }}
         >
           <div className="w-6 h-6 flex items-center justify-center">
-            <img src="/src/assets/search.svg" alt="search icon" className="w-4 h-4" />
+            <img 
+              src={suggestion.type === 'brand' ? `/src/assets/${suggestion.value}.svg` : "/src/assets/search.svg"} 
+              alt={suggestion.type === 'brand' ? "brand icon" : "car icon"} 
+              className="w-4 h-4" 
+            />
           </div>
           <div className="text-black text-base">
-            {suggestion}
+            {suggestion.label}
           </div>
         </div>
       ))}

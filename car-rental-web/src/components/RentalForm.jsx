@@ -35,6 +35,7 @@ export default function RentalForm({ car, onCancel }) {
 
   const [errors, setErrors] = useState({});
   const [touched, setTouched] = useState({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     const newErrors = {};
@@ -70,31 +71,112 @@ export default function RentalForm({ car, onCancel }) {
     setTouched({ ...touched, [e.target.name]: true });
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
+  const calculateRentalDetails = (startDate, endDate, pricePerDay) => {
+    const days = startDate && endDate
+      ? Math.max(
+          1,
+          Math.floor(
+            (new Date(endDate).getTime() - new Date(startDate).getTime()) /
+              (1000 * 60 * 60 * 24)
+          )
+        )
+      : 0;
+    const total = days === 0 ? "0.00" : (pricePerDay * days).toFixed(2);
+    return { days, total };
+  };
 
-    // Validate form
-    if (Object.keys(errors).length > 0) {
-      alert("Please fix the errors in the form before submitting");
-      return;
+  const validateForm = (formData) => {
+    const newErrors = {};
+
+    if (!formData.name?.trim()) {
+      newErrors.name = "Name is required";
     }
 
-    const days =
-      form.start && form.end
-        ? Math.max(
-            1,
-            Math.floor(
-              (new Date(form.end).getTime() - new Date(form.start).getTime()) /
-                (1000 * 60 * 60 * 24)
-            )
-          )
-        : 0;
-    const pricePerDay = car?.price || 0;
-    const total = days === 0 ? "0.00" : (pricePerDay * days).toFixed(2);
+    if (!/^(\(04\)|04)\d{8}$/.test(formData.phone)) {
+      newErrors.phone = "Invalid Australia number, start with (04), 10 digits total";
+    }
 
-    // Submit reservation
-    alert(`Reservation submitted for ${days} days. Total: $${total}`);
-    // Here you would make an API call to save the reservation
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      newErrors.email = "Invalid email format";
+    }
+
+    if (!/^([A-Z]{1,3}\d{5,6}|[A-Z]{2}\d{6})$/.test(formData.license)) {
+      newErrors.license = "Invalid driver's license. Example: NSW123456 or ABC12345";
+    }
+
+    if (!formData.start || !formData.end || new Date(formData.start) >= new Date(formData.end)) {
+      newErrors.date = "Start and end date are required and must be valid";
+    }
+
+    return newErrors;
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    
+    try {
+      setIsSubmitting(true);
+      
+      // Validate form
+      const validationErrors = validateForm(form);
+      if (Object.keys(validationErrors).length > 0) {
+        setErrors(validationErrors);
+        throw new Error("Please fix the errors in the form before submitting");
+      }
+
+      // Calculate rental details
+      const { days, total } = calculateRentalDetails(form.start, form.end, car?.price || 0);
+
+      // Prepare submission data
+      const rentalSubmission = {
+        id: crypto.randomUUID(), // Generate unique ID
+        customerInfo: {
+          name: form.name,
+          phone: form.phone,
+          email: form.email,
+          license: form.license
+        },
+        rentalInfo: {
+          startDate: form.start,
+          endDate: form.end,
+          days: days,
+          pricePerDay: car?.price || 0,
+          totalPrice: total
+        },
+        carInfo: {
+          id: car?.id,
+          vin: car?.vin,
+          model: car?.model,
+          brand: car?.brand
+        },
+        status: 'pending',
+        submittedAt: new Date().toISOString(),
+        metadata: {
+          browser: navigator.userAgent,
+          screenSize: `${window.innerWidth}x${window.innerHeight}`,
+          timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
+        }
+      };
+
+      // Log form information as a single object
+      console.log('Rental Submission:', rentalSubmission);
+
+      // Here you would make an API call to save the reservation
+      // const response = await rentalService.createRental(rentalSubmission);
+      
+      // For now, just show success message
+      alert(`Reservation submitted successfully!\nDays: ${days}\nTotal: $${total}`);
+      
+      // Clear form after successful submission
+      setForm(defaultForm);
+      localStorage.removeItem("rentalForm");
+      
+    } catch (error) {
+      console.error('Error submitting form:', error);
+      alert(error.message || 'Failed to submit reservation. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const pricePerDay = car?.price || 0;
@@ -341,9 +423,11 @@ export default function RentalForm({ car, onCancel }) {
                 ? 'bg-[rgba(231,170,76,1)] hover:bg-yellow-500'
                 : 'bg-gray-300 cursor-not-allowed'
             }`}
-            disabled={!isFormValid}
+            disabled={!isFormValid || isSubmitting}
           >
-            <span className="justify-start text-white text-base font-bold leading-normal">Submit</span>
+            <span className="justify-start text-white text-base font-bold leading-normal">
+              {isSubmitting ? 'Submitting...' : 'Submit'}
+            </span>
           </button>
         </div>
       </div>

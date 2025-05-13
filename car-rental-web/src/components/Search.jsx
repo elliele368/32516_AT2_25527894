@@ -3,8 +3,10 @@ import { getCars } from '../api/api';
 import { getSuggestions } from '../api/search';
 import FilterDropdown from './FilterDropdown';
 import SearchDropdown from './SearchDropdown';
+import { useNavigate } from 'react-router-dom';
 
 export default function Search() {
+  const navigate = useNavigate();
   const [searchText, setSearchText] = useState('');
   
   // Define options
@@ -12,7 +14,7 @@ export default function Search() {
     { value: 'All', label: 'All Brands' },
     { value: 'Mercedes', label: 'Mercedes', icon: 'brand-mercedes.svg' },
     { value: 'Volkswagen', label: 'Volkswagen', icon: 'brand-volkswagen.svg' },
-    { value: 'Kia / Huyndai', label: 'Kia / Huyndai', icon: 'brand-kia.svg' },
+    { value: 'Kia/Hyundai', label: 'Kia / Huyndai', icon: 'brand-kia.svg' },
     { value: 'Toyota', label: 'Toyota', icon: 'brand-toyota.svg' },
     { value: 'Others', label: 'Others', icon: 'brand-others.svg' },
   ];
@@ -51,11 +53,39 @@ export default function Search() {
       }
       try {
         const results = await getSuggestions(searchText.trim());
+        console.log("Suggestions API response:", results);
         
         // Check if results.data exists and is an array
         if (results && results.data && Array.isArray(results.data)) {
-          // Extract car names for the dropdown
-          const suggestionsData = results.data.map(car => car.name || car.title || "Unnamed");
+          // Tạo một Set để lưu trữ các suggestions đã thêm
+          const uniqueSuggestions = new Set();
+          
+          // Xử lý suggestions
+          const suggestionsData = results.data.reduce((acc, car) => {
+            // Thêm brand nếu chưa có trong suggestions
+            if (car.brand && !uniqueSuggestions.has(car.brand)) {
+              uniqueSuggestions.add(car.brand);
+              acc.push({
+                type: 'brand',
+                value: car.brand,
+                label: car.brand
+              });
+            }
+            
+            // Thêm tên xe nếu chưa có trong suggestions
+            if (car.name && !uniqueSuggestions.has(car.name)) {
+              uniqueSuggestions.add(car.name);
+              acc.push({
+                type: 'car',
+                value: car.name,
+                label: `${car.name}`
+              });
+            }
+            
+            return acc;
+          }, []);
+
+          console.log("Processed suggestions:", suggestionsData);
           setSuggestions(suggestionsData);
         } else {
           console.warn("Unexpected suggestions format:", results);
@@ -78,7 +108,16 @@ export default function Search() {
     !typeFilter.includes('All')
   ) && !(brandFilter.length === 0 && typeFilter.length === 0);
 
-  console.log('Rendering SearchDropdown with suggestions:', suggestions);
+  const handleSearch = (searchValue = searchText) => {
+    if (!isSearchEnabled) return;
+
+    const searchParams = new URLSearchParams();
+    if (searchValue.trim()) searchParams.set('search', searchValue.trim());
+    if (brandFilter.length > 0 && !brandFilter.includes('All')) searchParams.set('brand', brandFilter.join(','));
+    if (typeFilter.length > 0 && !typeFilter.includes('All')) searchParams.set('type', typeFilter.join(','));
+
+    navigate(`/search?${searchParams.toString()}`);
+  };
 
   return (
     <div className="self-stretch h-12 inline-flex justify-start items-center gap-3">
@@ -124,10 +163,10 @@ export default function Search() {
           <div className="absolute nmm top-full left-0 right-0 mt-1" >
             <SearchDropdown
               suggestions={suggestions}
-              onSuggestionClick={(value) => {
-                setSearchText(value);
+              onSuggestionClick={(suggestion) => {
+                setSearchText(suggestion.value);
                 setSuggestions([]); // Clear suggestions after selection
-                console.log('Selected suggestion:', value);
+                handleSearch(suggestion.value); // Chuyển hướng đến trang search với giá trị suggestion
               }}
               isVisible={searchText.trim() !== '' && suggestions.length > 0}
             />
@@ -139,6 +178,7 @@ export default function Search() {
           className={`w-28 self-stretch px-5 rounded-tr-lg rounded-br-lg ${
             isSearchEnabled ? 'bg-[rgba(231,170,76,1)] hover:bg-yellow-600 cursor-pointer' : 'bg-gray-300 cursor-not-allowed'
           } flex justify-center items-center gap-2 transition-colors`}
+          onClick={() => handleSearch()}
         >
           <div className="text-white text-base font-medium leading-snug tracking-tight">Search</div>
         </div>
