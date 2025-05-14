@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import DatePicker from "./DatePicker";
 import checkIcon from "../assets/check-outline.svg";
 import infoIcon from "../assets/info.svg";
+import clientDB from '../utils/clientDatabase';
 
 export default function RentalForm({ car, onCancel, onConfirmPending }) {
   const defaultForm = {
@@ -13,24 +14,23 @@ export default function RentalForm({ car, onCancel, onConfirmPending }) {
     end: "",
   };
   const [form, setForm] = useState(() => {
-    const saved = localStorage.getItem("rentalForm");
-    return saved ? JSON.parse(saved) : defaultForm;
+    return clientDB.getFormData() || defaultForm;
   });
-  // Load form from localStorage on mount
+
+  // Load form from clientDB on mount
   useEffect(() => {
-    const savedForm = localStorage.getItem("rentalForm");
+    const savedForm = clientDB.getFormData();
     if (savedForm) {
-      const parsed = JSON.parse(savedForm);
       const isEmpty = Object.values(form).every(value => value === "");
       if (isEmpty) {
-        setForm(parsed);
+        setForm(savedForm);
       }
     }
   }, []);
 
-  // Persist form to localStorage whenever it changes
+  // Persist form to clientDB whenever it changes
   useEffect(() => {
-    localStorage.setItem("rentalForm", JSON.stringify(form));
+    clientDB.saveFormData(form);
   }, [form]);
 
   const [errors, setErrors] = useState({});

@@ -149,27 +149,21 @@ app.put('/api/cars/:vin/cancel', async (req, res) => {
 // API endpoint to handle car rental
 app.post('/api/rentals', async (req, res) => {
   try {
-    console.log('Received rental data:', req.body);
     const rentalData = req.body;
 
-    // Check if car is still available before processing rental
+    // Check if car is still available
     const car = await Car.findOne({ vin: rentalData.carInfo.vin });
-
+    
     if (!car) {
-      return res.status(404).json({
-        message: 'Car not found',
-        available: false
-      });
+      return res.status(404).json({ message: 'Car not found' });
     }
-
+    
+    // Important: Check if car is still available
     if (!car.available) {
-      return res.status(400).json({
-        message: 'Car is no longer available. Please select another vehicle',
-        available: false
-      });
+      return res.status(400).json({ message: 'Car is no longer available' });
     }
 
-    // Create new rental
+    // Create new rental record
     const newRental = new Rental({
       customerInfo: rentalData.customerInfo,
       rentalInfo: rentalData.rentalInfo,
@@ -178,32 +172,24 @@ app.post('/api/rentals', async (req, res) => {
       submittedAt: new Date()
     });
 
-    // Save new rental
+    // Save rental
     const savedRental = await newRental.save();
-    console.log('Saved rental:', savedRental);
-
-    // Update car status (available = false and reserved = false)
+    
+    // Update car availability - this affects all clients
     const updatedCar = await Car.findOneAndUpdate(
       { vin: rentalData.carInfo.vin },
       { available: false, reserved: false },
       { new: true }
     );
 
-    console.log('Updated car:', updatedCar);
-
     res.status(201).json({
-      message: 'Rental submitted successfully',
+      message: 'Rental created successfully',
       rental: savedRental,
-      car: updatedCar,
-      available: true
+      car: updatedCar
     });
   } catch (error) {
-    console.error('Error placing rental:', error);
-    res.status(500).json({
-      message: 'Server error while processing rental',
-      error: error.message,
-      available: false
-    });
+    console.error('Error creating rental:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
   }
 });
 

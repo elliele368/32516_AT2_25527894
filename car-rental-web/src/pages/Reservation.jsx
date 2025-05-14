@@ -5,10 +5,12 @@ import Modal from "../components/Modal";
 import cancelImage from "../assets/cancel.svg";
 import rentPendingImage from "../assets/rent-pending.svg";
 import rentConfirmedImage from "../assets/rent-confirmed.svg";
+import rentFailedImage from "../assets/blank.svg";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { getCars } from "../api/api";
 import failImage from "../assets/blank.svg";
+import clientDB from '../utils/clientDatabase';
 
 export default function Reservation({ setModalOverlay }) {
   const [cars, setCars] = useState([]);
@@ -20,8 +22,31 @@ export default function Reservation({ setModalOverlay }) {
     const fetchAvailableCars = async () => {
       try {
         setLoading(true);
-        const response = await getCars(); // Make sure this uses port 3002
-        setCars(response.data.filter((car) => car.reserved));
+        
+        // Check if user has a reservation
+        const reservedVin = clientDB.getReservedCar();
+        if (!reservedVin) {
+          setCars([]);
+          setLoading(false);
+          return;
+        }
+        
+        // Fetch all cars
+        const response = await getCars();
+        
+        // Filter to only the car reserved by this client
+        const reservedCar = response.data.find(car => car.vin === reservedVin);
+        
+        if (reservedCar) {
+          // Mark this car as reserved by the current client
+          reservedCar.reserved = true;
+          setCars([reservedCar]);
+        } else {
+          // Car not found or no longer available
+          clientDB.cancelReservation();
+          setCars([]);
+        }
+        
         setError(null);
       } catch (error) {
         setError('Failed to load available cars. Please try again later.');
@@ -32,8 +57,6 @@ export default function Reservation({ setModalOverlay }) {
     };
 
     fetchAvailableCars();
-
-    
   }, []);
 
   const handleRent = async (vin) => {
@@ -79,7 +102,8 @@ export default function Reservation({ setModalOverlay }) {
 
       // Refresh the list of reserved cars
       setCars((prevCars) => prevCars.map(car => car.vin === vin ? { ...car, reserved: false } : car));
-      localStorage.removeItem("rentalForm");
+      clientDB.cancelReservation();
+      clientDB.clearFormData();
       navigate('/');
       window.dispatchEvent(new Event("carDataUpdated"));
     } catch (error) {
@@ -134,16 +158,14 @@ export default function Reservation({ setModalOverlay }) {
             className="w-full h-11 bg-[rgba(231,170,76,1)] rounded-lg shadow-sm text-white text-base font-bold"
             onClick={async () => {
               try {
-                // Log the value of rentalForm from localStorage for debugging
-                console.log("rentalForm from localStorage:", localStorage.getItem("rentalForm"));
-                // Retrieve rental information from localStorage
-                const formData = JSON.parse(localStorage.getItem("rentalForm"));
+                // Get form data
+                const formData = clientDB.getFormData();
                 if (!formData) {
                   console.error("Form data not found. Please complete the form before confirming.");
                   return;
                 }
 
-                // Calculate rental information
+                // Calculate rental details
                 const days = Math.max(
                   1,
                   Math.floor(
@@ -175,8 +197,44 @@ export default function Reservation({ setModalOverlay }) {
                   }
                 };
 
-                // Send rental request to server with logging for debugging
-                console.log("Sending rental submission:", rentalSubmission);
+                // Check if car is still available before confirming
+                const checkResponse = await fetch(`http://Car-rental-backend1-env-1.eba-gs2svizp.us-east-1.elasticbeanstalk.com/cars?vin=${reservedCar.vin}`);
+                const checkData = await checkResponse.json();
+                
+                const carCheck = checkData.data?.[0];
+                if (!carCheck || carCheck.reserved) {
+                  setModalOverlay(
+                    <Modal
+                      title="Rental Failed"
+                      status="Failed"
+                      image={rentFailedImage}
+                      message="The car is no longer available."
+                      description="Someone else has already rented this car. Please choose another vehicle."
+                      buttons={[
+                        <button
+                          key="ok"
+                          className="w-full h-11 bg-[rgba(231,170,76,1)] rounded-lg shadow-sm text-white text-base font-bold"
+                          onClick={() => {
+                            setModalOverlay(null);
+                            navigate('/');
+                          }}
+                        >
+                          Choose another car
+                        </button>
+                      ]}
+                      onClose={() => {
+                        setModalOverlay(null);
+                        navigate('/');
+                      }}
+                    />
+                  );
+                  // Clear the reservation from client state
+                  clientDB.cancelReservation();
+                  clientDB.clearFormData();
+                  return;
+                }
+
+                // Send rental request to server
                 const response = await fetch('http://Car-rental-backend1-env-1.eba-gs2svizp.us-east-1.elasticbeanstalk.com/api/rentals', {
                   method: 'POST',
                   headers: {
@@ -185,18 +243,14 @@ export default function Reservation({ setModalOverlay }) {
                   body: JSON.stringify(rentalSubmission),
                 });
 
-                console.log("Server response status:", response.status);
                 const responseData = await response.json();
-                console.log("Server response data:", responseData);
 
                 if (response.ok) {
-                  // Clear form data
-                  localStorage.removeItem("rentalForm");
-
-                  // Update state cars to remove reserved car
-                  setCars(prevCars => prevCars.filter(car => car.vin !== reservedCar.vin));
+                  // Clear client-side data after successful rental
+                  clientDB.cancelReservation();
+                  clientDB.clearFormData();
                   
-                  // Show confirmation modal
+                  // Show success modal
                   setModalOverlay(
                     <Modal
                       title="Rental Confirmation"
@@ -211,56 +265,25 @@ export default function Reservation({ setModalOverlay }) {
                       }}
                     />
                   );
-                  // Close modal and navigate
-                  // Update UI
+                  
+                  // Notify that car data needs to be updated
                   window.dispatchEvent(new Event("carDataUpdated"));
                 } else {
-                  // Check if the error is due to the car no longer being available
-                  if (!responseData.available) {
-                    // Call API to remove reserved status
-                    try {
-                      const cancelResponse = await fetch(`http://Car-rental-backend1-env-1.eba-gs2svizp.us-east-1.elasticbeanstalk.com/api/cars/${reservedCar.vin}/cancel`, {
-                        method: 'PUT',
-                        headers: {
-                          'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({ reserved: false }),
-                      });
-
-                      if (!cancelResponse.ok) {
-                        console.warn("Warning: Could not update car reserved status to false");
-                      } else {
-                        console.log("Successfully removed reserved status from car");
-                      }
-                    } catch (cancelError) {
-                      console.error("Error while removing reserved status:", cancelError);
-                    }
-
-                    // Show modal message instead of alert
-                    setModalOverlay(
-                      <Modal
-                        title="Order Failed"
-                        image={failImage}
-                        message="Your order could not be completed..."
-                        description="The selected car is no longer available at the time of processing. Please choose another car and try again."
-                        onClose={() => {
-                          setModalOverlay(null);
-                          navigate('/');
-                        }}
-                      />
-                    );
-                    
-                    // Clear form data
-                    localStorage.removeItem("rentalForm");
-                    
-                    // Update state cars to remove reserved car
-                    setCars([]);
-                    
-                    // Update UI
-                    window.dispatchEvent(new Event("carDataUpdated"));
-                  } else {
-                    throw new Error(`Failed to submit rental: ${responseData.message || "Unknown error"}`);
-                  }
+                  // Show error modal
+                  setModalOverlay(
+                    <Modal
+                      title="Rental Failed"
+                      status="Failed"
+                      image={rentFailedImage}
+                      message="Your order could not be processed."
+                      description={responseData.message || "There was an error processing your rental. Please try again."}
+                      onClose={() => {
+                        setModalOverlay(null);
+                        navigate('/');
+                        window.dispatchEvent(new Event("carDataUpdated"));
+                      }}
+                    />
+                  );
                 }
               } catch (error) {
                 console.error('Error confirming rental:', error);

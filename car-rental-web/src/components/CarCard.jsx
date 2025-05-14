@@ -1,3 +1,5 @@
+import clientDB from '../utils/clientDatabase';
+
 export default function CarCard({ car, onRent, onCancel }) {
   const {
     name,
@@ -8,31 +10,18 @@ export default function CarCard({ car, onRent, onCancel }) {
     price,
     available = true,
     reserved = false,
-    image
+    reservedByClient = false, // New flag indicating if this client reserved the car
+    image,
+    vin
   } = car;
 
+  // Determine if this specific car is reserved by the current client
+  // Note: reservedByClient is now passed from the parent component
   const handleClick = async () => {
-    if (reserved && onCancel) {
-      try {
-        const response = await fetch(`http://Car-rental-backend1-env-1.eba-gs2svizp.us-east-1.elasticbeanstalk.com/api/cars/${car.vin}/cancel`, {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-          }
-        });
-
-        if (!response.ok) {
-          throw new Error('Failed to cancel reservation');
-        }
-
-        // alert('Reservation cancelled.');
-        onCancel(); // trigger UI update
-      } catch (error) {
-        console.error('Cancel error:', error);
-        alert('Failed to cancel reservation.');
-      }
+    if (reserved && reservedByClient && onCancel) {
+      onCancel(vin);
     } else if (!reserved && onRent) {
-      onRent();
+      onRent(vin);
     }
   };
 
@@ -54,7 +43,12 @@ export default function CarCard({ car, onRent, onCancel }) {
               <div className="text-gray-800 font-semibold group-hover:text-yellow-600 transition truncate">
                 <span className="truncate">{name}</span>
               </div>
-              {reserved && (
+              {reservedByClient && (
+                <span className="flex-shrink-0 bg-[rgba(231,169,76,0.2)] text-yellow-600 text-xs font-normal px-2 py-1 rounded">
+                  Reserved
+                </span>
+              )}
+              {reserved && !reservedByClient && (
                 <span className="flex-shrink-0 bg-[rgba(231,169,76,0.2)] text-yellow-600 text-xs font-normal px-2 py-1 rounded">
                   Reserved
                 </span>
@@ -86,7 +80,7 @@ export default function CarCard({ car, onRent, onCancel }) {
         </div>
 
         {available ? (
-          reserved ? (
+          reservedByClient ? (
             <button
               className="w-28 h-10 px-5 bg-white rounded-md shadow-[0px_4px_12px_0px_rgba(0,0,0,0.02)] outline outline-1 outline-offset-[-1px] outline-zinc-200 flex justify-center items-center gap-2"
               onClick={handleClick}
@@ -103,7 +97,7 @@ export default function CarCard({ car, onRent, onCancel }) {
           )
         ) : (
           <div className="w-28 h-10 px-5 bg-neutral-300 rounded-md shadow-[0px_4px_12px_0px_rgba(0,0,0,0.02)] flex justify-center items-center gap-2 text-white font-semibold text-base">
-            Rent
+            Unavailable
           </div>
         )}
       </div>

@@ -9,6 +9,7 @@ import { useState } from "react";
 import CarCard from "./components/CarCard";
 import { getCars } from "./api/api";
 import { useEffect } from "react";
+import clientDB from './utils/clientDatabase';
 
 export default function App() {
     const location = useLocation();
@@ -25,59 +26,143 @@ export default function App() {
     const initialBrandFilter = searchParams.get("brand")?.split(",") || [];
     const initialTypeFilter = searchParams.get("type")?.split(",") || [];
 
+    const mergeWithClientState = (cars) => {
+      if (!cars || !Array.isArray(cars)) return [];
+      
+      const reservedByClient = clientDB.getReservedCar();
+      
+      return cars.map(car => {
+        // If car is not available, this state is handled by the server and visible to all clients
+        if (!car.available) {
+          return car;
+        }
+        
+        // If this client has reserved this car, show as reserved
+        if (car.vin === reservedByClient) {
+          return { ...car, reserved: true, reservedByClient: true };
+        }
+        
+        // Otherwise show as not reserved (even if server says it's reserved)
+        // This hides other clients' reservations
+        return { ...car, reserved: false, reservedByClient: false };
+      });
+    };
+
     useEffect(() => {
       const fetchCars = async () => {
         try {
           setLoading(true);
-          const data = await getCars();
-          const listCars = data.data || [];
-          setCars(listCars);
+          const response = await getCars();
+          const serverCars = response.data || [];
+          
+          // Apply client-specific reservation state
+          const carsWithClientState = mergeWithClientState(serverCars);
+          
+          setCars(carsWithClientState);
           setError(null);
         } catch (err) {
-          setError("Failed to load cars. Please try again later.");
-          console.error("Error loading cars:", err);
+          console.error("Error fetching cars:", err);
+          setError("Failed to load cars. Please try again.");
         } finally {
           setLoading(false);
         }
       };
+
       fetchCars();
-    }, []);
-
-    useEffect(() => {
-      const handleUpdate = async () => {
-        try {
-          setLoading(true);
-          const data = await getCars();
-          setCars(data.data || []);
-        } catch (err) {
-          console.error("Error refreshing cars:", err);
-        } finally {
-          setLoading(false);
-        }
+      
+      // Handle refresh of car data when reservation changes
+      const handleCarDataUpdated = () => {
+        fetchCars();
       };
-
-      window.addEventListener("carDataUpdated", handleUpdate);
-      return () => window.removeEventListener("carDataUpdated", handleUpdate);
+      window.addEventListener("carDataUpdated", handleCarDataUpdated);
+      
+      return () => {
+        window.removeEventListener("carDataUpdated", handleCarDataUpdated);
+      };
     }, []);
 
     const handleRent = async (vin) => {
       try {
+        // Check if there's a previous reservation
+        const previousReservation = clientDB.getReservedCar();
+        
+        // If there's a previous reservation, cancel it first
+        if (previousReservation && previousReservation !== vin) {
+          try {
+            // Cancel previous reservation on server
+            await fetch(`http://Car-rental-backend1-env-1.eba-gs2svizp.us-east-1.elasticbeanstalk.com/api/cars/${previousReservation}/cancel`, {
+              method: "PUT",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ reserved: false }),
+            });
+            console.log(`Previous reservation for car ${previousReservation} was canceled.`);
+          } catch (cancelError) {
+            console.warn(`Error canceling previous reservation: ${cancelError}`);
+            // Continue with new reservation even if cancellation fails
+          }
+        }
+        
+        // Make the server call to reserve the new car
         const response = await fetch(`http://Car-rental-backend1-env-1.eba-gs2svizp.us-east-1.elasticbeanstalk.com/api/cars/${vin}/reserve`, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ reserved: true }),
         });
+        
         if (!response.ok) throw new Error("Failed to reserve car");
-        // Update the reserved flag in state
-        setCars((prevCars) =>
-          prevCars.map((car) =>
-            car.vin === vin ? { ...car, reserved: true } : { ...car, reserved: false }
-          )
+        
+        // Store the reservation in client database
+        clientDB.reserveCar(vin);
+        
+        // Update the UI with updated reservation state
+        setCars(prevCars =>
+          prevCars.map(car => {
+            // Mark the newly reserved car
+            if (car.vin === vin) {
+              return { ...car, reserved: true, reservedByClient: true };
+            }
+            // Remove reservation from previously reserved car
+            if (car.vin === previousReservation) {
+              return { ...car, reserved: false, reservedByClient: false };
+            }
+            return car;
+          })
         );
+        
         navigate("/reservation");
       } catch (err) {
         console.error("Error reserving car:", err);
         alert("Could not complete reservation.");
+      }
+    };
+
+    const handleCancel = async (vin) => {
+      try {
+        // Cancel reservation on server
+        const response = await fetch(`http://Car-rental-backend1-env-1.eba-gs2svizp.us-east-1.elasticbeanstalk.com/api/cars/${vin}/cancel`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ reserved: false }),
+        });
+        
+        if (!response.ok) throw new Error("Failed to cancel reservation");
+
+        // Remove client-side reservation
+        clientDB.cancelReservation();
+        
+        // Update UI
+        setCars((prevCars) =>
+          prevCars.map((car) =>
+            car.vin === vin ? { ...car, reserved: false, reservedByClient: false } : car
+          )
+        );
+        
+        navigate("/");
+      } catch (err) {
+        console.error("Error cancelling reservation:", err);
+        alert("Could not cancel the reservation.");
       }
     };
 
@@ -154,28 +239,7 @@ export default function App() {
                                       key={car.vin || car.id}
                                       car={car}
                                       onRent={() => handleRent(car.vin)}
-                                      onCancel={async () => {
-                                        try {
-                                          const response = await fetch(`http://Car-rental-backend1-env-1.eba-gs2svizp.us-east-1.elasticbeanstalk.com/api/cars/${car.vin}/cancel`, {
-                                            method: "PUT",
-                                            headers: {
-                                              "Content-Type": "application/json",
-                                            },
-                                            body: JSON.stringify({ reserved: false }),
-                                          });
-                                          if (!response.ok) throw new Error("Failed to cancel reservation");
-
-                                          setCars((prevCars) =>
-                                            prevCars.map((c) =>
-                                              c.vin === car.vin ? { ...c, reserved: false } : c
-                                            )
-                                          );
-                                          navigate("/");
-                                        } catch (err) {
-                                          console.error("Error cancelling reservation:", err);
-                                          alert("Could not cancel the reservation.");
-                                        }
-                                      }}
+                                      onCancel={() => handleCancel(car.vin)}
                                     />
                                   ))
                                 ) : (
