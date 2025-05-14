@@ -3,6 +3,7 @@ import { useSearchParams, useNavigate } from 'react-router-dom';
 import { getFilteredCars } from '../api/api';
 import CarCard from '../components/CarCard';
 import Search from '../components/Search';
+import { API_BASE_URL } from '../config/config';
 
 export default function SearchResults({ initialSearch, initialBrandFilter, initialTypeFilter }) {
   const [searchParams] = useSearchParams();
@@ -133,7 +134,7 @@ export default function SearchResults({ initialSearch, initialBrandFilter, initi
               <div className="flex justify-between items-center w-full">
                 <div className="text-yellow-600 text-lg font-semibold leading-7">SEARCH RESULTS</div>
                 <div className="h-9 px-2 py-0.5 bg-slate-200 rounded flex items-center gap-2.5">
-                  <div className="text-neutral-500 text-base font-base leading-none tracking-tight">
+                  <div className="text-neutral-500 text-base font-semibold leading-none tracking-tight">
                     {cars.length} result{cars.length !== 1 ? 's' : ''}
                   </div>
                 </div>

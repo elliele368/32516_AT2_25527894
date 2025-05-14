@@ -9,6 +9,7 @@ import { useState } from "react";
 import CarCard from "./components/CarCard";
 import { getCars } from "./api/api";
 import { useEffect } from "react";
+import { API_BASE_URL } from "./config/config";
 
 export default function App() {
     const location = useLocation();

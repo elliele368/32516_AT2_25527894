@@ -1,3 +1,4 @@
+import {API_BASE_URL} from "../config/config";
 export default function CarCard({ car, onRent, onCancel }) {
   const {
     name,

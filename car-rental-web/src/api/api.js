@@ -1,8 +1,8 @@
 import axios from 'axios';
-
+import { API_BASE_URL } from '../config/config';
 // Tạo instance axios với các cấu hình mặc định
 const api = axios.create({
-  baseURL: 'http://localhost:3002',
+  baseURL: API_BASE_URL,
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json',
@@ -39,7 +39,7 @@ export const getFilteredCars = async ({ search = '', brand = [], type = [] }) =>
     if (brand.length > 0 && !brand.includes('All')) queryParams.append('brand', brand.join(','));
     if (type.length > 0 && !type.includes('All')) queryParams.append('type', type.join(','));
 
-    const response = await api.get(`/cars?${queryParams.toString()}`);
+    const response = await api.get(`/api/cars?${queryParams.toString()}`);
     return response.data;
   } catch (error) {
     console.error("Error fetching filtered cars:", error);
@@ -49,7 +49,7 @@ export const getFilteredCars = async ({ search = '', brand = [], type = [] }) =>
 
 export const getSuggestions = async (searchText) => {
   try {
-    const response = await api.get(`/cars?search=${encodeURIComponent(searchText)}`);
+    const response = await api.get(`/api/cars?search=${encodeURIComponent(searchText)}`);
     console.log("Suggestions API response:", response.data);
     return response.data;
   } catch (error) {

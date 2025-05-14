@@ -9,6 +9,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { getCars } from "../api/api";
 import failImage from "../assets/blank.svg";
+import { API_BASE_URL } from "../config/config";
 
 export default function Reservation({ setModalOverlay }) {
   const [cars, setCars] = useState([]);
