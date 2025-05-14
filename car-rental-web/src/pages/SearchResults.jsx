@@ -3,6 +3,7 @@ import { useSearchParams, useNavigate } from 'react-router-dom';
 import { getFilteredCars } from '../api/api';
 import CarCard from '../components/CarCard';
 import Search from '../components/Search';
+import clientDB from '../utils/clientDatabase';
 
 export default function SearchResults({ initialSearch, initialBrandFilter, initialTypeFilter }) {
   const [searchParams] = useSearchParams();
@@ -35,7 +36,8 @@ export default function SearchResults({ initialSearch, initialBrandFilter, initi
 
   const handleRent = async (vin) => {
     try {
-      const response = await fetch(`http://Car-rental-backend1-env-1.eba-gs2svizp.us-east-1.elasticbeanstalk.com/api/cars/${vin}/reserve`, {
+        clientDB.reserveCar(vin);
+      const response = await fetch(`http://localhost:3002/api/cars/${vin}/reserve`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ reserved: true }),
@@ -54,12 +56,14 @@ export default function SearchResults({ initialSearch, initialBrandFilter, initi
 
   const handleCancel = async (vin) => {
     try {
-      const response = await fetch(`http://Car-rental-backend1-env-1.eba-gs2svizp.us-east-1.elasticbeanstalk.com/api/cars/${vin}/cancel`, {
+      const response = await fetch(`http://localhost:3002/api/cars/${vin}/cancel`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ reserved: false }),
       });
       if (!response.ok) throw new Error("Failed to cancel reservation");
+
+      clientDB.cancelReservation();
 
       // Re-fetch filtered cars
       const search = searchParams.get('search') || '';
@@ -67,6 +71,9 @@ export default function SearchResults({ initialSearch, initialBrandFilter, initi
       const type = searchParams.get('type')?.split(',') || [];
       const updated = await getFilteredCars({ search, brand, type });
       setCars(updated.data || []);
+
+      // Notify other components (e.g. homepage) to update
+      window.dispatchEvent(new Event("carDataUpdated"));
     } catch (err) {
       console.error("Error cancelling reservation:", err);
       alert("Could not cancel the reservation.");
@@ -143,7 +150,7 @@ export default function SearchResults({ initialSearch, initialBrandFilter, initi
               {cars.map((car) => (
                 <CarCard
                   key={car.vin || car.id}
-                  car={car}
+                  car={{ ...car, reservedByClient: clientDB.getReservedCar() === car.vin }}
                   onRent={() => handleRent(car.vin)}
                   onCancel={() => handleCancel(car.vin)}
                 />

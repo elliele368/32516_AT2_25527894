@@ -90,7 +90,7 @@ export default function App() {
         if (previousReservation && previousReservation !== vin) {
           try {
             // Cancel previous reservation on server
-            await fetch(`http://Car-rental-backend1-env-1.eba-gs2svizp.us-east-1.elasticbeanstalk.com/api/cars/${previousReservation}/cancel`, {
+            await fetch(`http://localhost:3002/api/cars/${previousReservation}/cancel`, {
               method: "PUT",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({ reserved: false }),
@@ -103,7 +103,7 @@ export default function App() {
         }
         
         // Make the server call to reserve the new car
-        const response = await fetch(`http://Car-rental-backend1-env-1.eba-gs2svizp.us-east-1.elasticbeanstalk.com/api/cars/${vin}/reserve`, {
+        const response = await fetch(`http://localhost:3002/api/cars/${vin}/reserve`, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ reserved: true }),
@@ -139,7 +139,7 @@ export default function App() {
     const handleCancel = async (vin) => {
       try {
         // Cancel reservation on server
-        const response = await fetch(`http://Car-rental-backend1-env-1.eba-gs2svizp.us-east-1.elasticbeanstalk.com/api/cars/${vin}/cancel`, {
+        const response = await fetch(`http://localhost:3002/api/cars/${vin}/cancel`, {
           method: "PUT",
           headers: {
             "Content-Type": "application/json",

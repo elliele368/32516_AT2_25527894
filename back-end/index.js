@@ -32,48 +32,115 @@ app.get('/', (req, res) => {
 // get all cars with optional search and filters
 app.get('/cars', async (req, res) => {
   try {
-    const { search, brand, type } = req.query;
+    const { search, brand, type, vin } = req.query;
 
     // Dynamic query object
+    console.log('Search:', search);
+    console.log('Brand:', brand);
+    console.log('Type:', type);
+    console.log('VIN:', vin);
     const query = {};
 
+    // Handle specific VIN search if provided
+    if (vin) {
+      query.vin = { $regex: new RegExp(vin, 'i') };
+    }
+
+    // Handle search across name, brand, description
     if (search) {
       if (search.startsWith('"') && search.endsWith('"')) {
+        // Exact search handling - case insensitive
         const exact = search.slice(1, -1); // remove quotes
         query.$or = [
-          { name: exact },
-          { brand: exact }
+          { name: { $regex: new RegExp(`^${exact}$`, 'i') } },
+          { brand: { $regex: new RegExp(`^${exact}$`, 'i') } },
+          { description: { $regex: new RegExp(exact, 'i') } },
+          { type: { $regex: new RegExp(`^${exact}$`, 'i') } }
         ];
       } else {
-        const keywords = search.split(/[,\s/]+/).filter(Boolean);
-        query.$or = [
-          { name: { $regex: search, $options: 'i' } },
-          { description: { $regex: search, $options: 'i' } },
-          { brand: { $in: keywords.map(k => new RegExp(k, 'i')) } }
+        // Normal search with keywords
+        const searchRegex = new RegExp(search, 'i');
+        
+        // Create basic search conditions
+        const searchConditions = [
+          { name: { $regex: searchRegex } },
+          { brand: { $regex: searchRegex } },
+          { description: { $regex: searchRegex } },
+          { type: { $regex: searchRegex } }
         ];
+        
+        // If there are multiple keywords, also search for each one
+        const keywords = search.split(/[,\s/]+/).filter(Boolean);
+        if (keywords.length > 1) {
+          keywords.forEach(keyword => {
+            const keywordRegex = new RegExp(keyword, 'i');
+            searchConditions.push(
+              { name: { $regex: keywordRegex } },
+              { brand: { $regex: keywordRegex } },
+              { description: { $regex: keywordRegex } },
+              { type: { $regex: keywordRegex } }
+            );
+          });
+        }
+        
+        query.$or = searchConditions;
       }
     }
 
-    if (brand !== undefined) {
+    // Handle brand filter
+    if (brand !== undefined && brand.trim() !== '') {
       const brands = brand.split(',').filter(Boolean);
-      if (brands.length === 0) {
-        return res.status(200).json({ message: 'No cars found', data: [] });
+      if (brands.length > 0) {
+        // Create array of OR conditions for each brand
+        const brandConditions = brands.map(b => {
+          return { brand: { $regex: new RegExp(b.trim(), 'i') } };
+        });
+
+        // Combine with existing search if any
+        if (query.$or) {
+          query.$and = [
+            { $or: query.$or },
+            { $or: brandConditions }
+          ];
+          delete query.$or;
+        } else {
+          query.$or = brandConditions;
+        }
       }
-      query.brand = { $in: brands };
     }
 
-    if (type !== undefined) {
+    // Handle type filter
+    if (type !== undefined && type.trim() !== '') {
       const types = type.split(',').filter(Boolean);
-      if (types.length === 0) {
-        return res.status(200).json({ message: 'No cars found', data: [] });
+      if (types.length > 0) {
+        // Create array of OR conditions for each type
+        const typeConditions = types.map(t => {
+          return { type: { $regex: new RegExp(t.trim(), 'i') } };
+        });
+
+        // Combine with existing conditions
+        if (query.$and) {
+          query.$and.push({ $or: typeConditions });
+        } else if (query.$or) {
+          query.$and = [
+            { $or: query.$or },
+            { $or: typeConditions }
+          ];
+          delete query.$or;
+        } else {
+          query.$or = typeConditions;
+        }
       }
-      query.type = { $in: types };
     }
 
+    console.log('Final query:', JSON.stringify(query, null, 2));
+
+    // Execute query
     const cars = await Car.find(query);
 
+    // Return consistent response format
     if (!cars || cars.length === 0) {
-      return res.status(404).json({ message: 'No cars found' });
+      return res.status(200).json({ message: 'No cars found', data: [] });
     }
 
     res.status(200).json({ message: 'Cars fetched successfully', data: cars });

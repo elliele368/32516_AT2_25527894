@@ -38,50 +38,53 @@ export default function FilterDropdown({ label, options, selectedOptions, onChan
   };
 
   const toggleOption = (value, e) => {
-    // Stop event propagation to prevent dropdown from closing
     e.preventDefault();
     e.stopPropagation();
     
-    // All non-"All" option values
-    const nonAllValues = options
-      .filter(opt => opt.value !== 'All')
-      .map(opt => opt.value);
-      
+    let newSelections = [...selectedOptions];
+    
     if (value === 'All') {
-      // If "All" is clicked, toggle between all selected and none selected
+      // Toggle All selection
       if (selectedOptions.includes('All')) {
-        // If "All" was selected, deselect everything
-        onChange([]);
+        // If All was selected, deselect everything
+        newSelections = [];
       } else {
-        // If "All" wasn't selected, select all options including "All"
-        onChange(['All', ...nonAllValues]);
+        // If All wasn't selected, select all options
+        newSelections = options.map(opt => opt.value);
       }
     } else {
-      // Handle clicking a non-"All" option
-      let newSelections = [...selectedOptions];
-      
       if (selectedOptions.includes(value)) {
-        // Deselect this option
+        // Remove this option from selections
         newSelections = newSelections.filter(v => v !== value);
-        // Also remove "All" if it was selected
+        
+        // Also remove All if it was selected
         newSelections = newSelections.filter(v => v !== 'All');
+        
+        // Check if any selections remain (excluding empty strings)
+        const hasRealSelections = newSelections.some(v => v !== '');
+        if (!hasRealSelections) {
+          // If no real selections remain, clear the array completely
+          newSelections = [];
+        }
       } else {
-        // Add this option if it wasn't selected
-        newSelections.push(value);
+        // Add this option to selections
+        if (!newSelections.includes(value)) {
+          newSelections.push(value);
+        }
         
         // Check if all non-All options are now selected
-        const allNonAllSelected = nonAllValues.every(v => 
-          newSelections.includes(v)
-        );
+        const allNonAllOptions = options.filter(opt => opt.value !== 'All').map(opt => opt.value);
+        const allSelected = allNonAllOptions.every(optValue => newSelections.includes(optValue));
         
-        // If all other options are selected, also select "All"
-        if (allNonAllSelected && !newSelections.includes('All')) {
+        // If all options are selected, add 'All' as well
+        if (allSelected && !newSelections.includes('All')) {
           newSelections.push('All');
         }
       }
-      
-      onChange(newSelections);
     }
+    
+    // Important: Update with the new selections
+    onChange(newSelections);
   };
 
   const isAllSelected = selectedOptions.includes('All');
@@ -98,9 +101,18 @@ export default function FilterDropdown({ label, options, selectedOptions, onChan
       >
         <span className="text-base font-normal leading-snug tracking-tight">
           {label} ({(() => {
+            // Kiểm tra nếu mảng rỗng hoặc chỉ chứa giá trị rỗng
+            if (!selectedOptions || selectedOptions.length === 0) {
+              return '0';
+            }
+            
             if (isAllSelected) return 'All';
+            
+            // Lọc ra các giá trị không phải All và không phải rỗng
             const filteredOptions = selectedOptions.filter(v => v !== 'All' && v !== '');
-            return filteredOptions.length;
+            
+            // Nếu không còn giá trị nào sau khi lọc, trả về 0
+            return filteredOptions.length || '0';
           })()})
         </span>
         <img

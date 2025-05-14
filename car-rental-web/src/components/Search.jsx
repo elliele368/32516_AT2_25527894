@@ -49,8 +49,24 @@ export default function Search({ initialSearch = "", initialBrandFilter = [], in
   // One-time initialization for search/filter state (prevents infinite re-render loop)
   useEffect(() => {
     setSearchText(initialSearch);
-    setBrandFilter(initialBrandFilter.length > 0 ? initialBrandFilter : allBrands);
-    setTypeFilter(initialTypeFilter.length > 0 ? initialTypeFilter : allTypes);
+    
+    // Xử lý brand filter
+    if (initialBrandFilter.includes('none')) {
+      setBrandFilter([]);
+    } else if (initialBrandFilter.length > 0) {
+      setBrandFilter(initialBrandFilter);
+    } else {
+      setBrandFilter(allBrands);
+    }
+    
+    // Xử lý type filter
+    if (initialTypeFilter.includes('none')) {
+      setTypeFilter([]);
+    } else if (initialTypeFilter.length > 0) {
+      setTypeFilter(initialTypeFilter);
+    } else {
+      setTypeFilter(allTypes);
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -129,8 +145,16 @@ export default function Search({ initialSearch = "", initialBrandFilter = [], in
 
     const searchParams = new URLSearchParams();
     if (searchValue.trim()) searchParams.set('search', searchValue.trim());
-    if (!brandFilter.includes('All')) searchParams.set('brand', brandFilter.join(','));
-    if (!typeFilter.includes('All')) searchParams.set('type', typeFilter.join(','));
+    if (brandFilter.length === 0) {
+      searchParams.set('brand', 'none');
+    } else if (!brandFilter.includes('All')) {
+      searchParams.set('brand', brandFilter.join(','));
+    }
+    if (typeFilter.length === 0) {
+      searchParams.set('type', 'none');
+    } else if (!typeFilter.includes('All')) {
+      searchParams.set('type', typeFilter.join(','));
+    }
 
     navigate(`/search?${searchParams.toString()}`);
   };

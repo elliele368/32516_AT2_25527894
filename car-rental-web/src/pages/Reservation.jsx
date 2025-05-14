@@ -61,7 +61,7 @@ export default function Reservation({ setModalOverlay }) {
 
   const handleRent = async (vin) => {
     try {
-      const response = await fetch(`http://Car-rental-backend1-env-1.eba-gs2svizp.us-east-1.elasticbeanstalk.com/api/cars/${vin}/reserve`, {
+      const response = await fetch(`http://localhost:3002/api/cars/${vin}/reserve`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -79,6 +79,8 @@ export default function Reservation({ setModalOverlay }) {
           car.vin === vin ? { ...car, reserved: true } : { ...car, reserved: false }
         )
       );
+      clientDB.reserveCar(vin); // Persist reserved car to local storage
+      window.dispatchEvent(new Event("carDataUpdated"));
       navigate('/reservations');
     } catch (error) {
       console.error('Error reserving car:', error);
@@ -88,7 +90,7 @@ export default function Reservation({ setModalOverlay }) {
 
   const handleCancel = async (vin) => {
     try {
-      const response = await fetch(`http://Car-rental-backend1-env-1.eba-gs2svizp.us-east-1.elasticbeanstalk.com/api/cars/${vin}/cancel`, {
+      const response = await fetch(`http://localhost:3002/api/cars/${vin}/cancel`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -198,11 +200,32 @@ export default function Reservation({ setModalOverlay }) {
                 };
 
                 // Check if car is still available before confirming
-                const checkResponse = await fetch(`http://Car-rental-backend1-env-1.eba-gs2svizp.us-east-1.elasticbeanstalk.com/cars?vin=${reservedCar.vin}`);
+                const checkResponse = await fetch(`http://localhost:3002/cars?vin=${reservedCar.vin}`);
                 const checkData = await checkResponse.json();
-                
-                const carCheck = checkData.data?.[0];
-                if (!carCheck || carCheck.reserved) {
+
+                let carCheck = checkData.data ? checkData.data.find(car => car.vin === reservedCar.vin) : null;
+                console.log("Car check data:", carCheck);
+                if (!carCheck || !carCheck.available) {
+                  // Clear the reservation from client state first
+                  clientDB.cancelReservation();
+                  clientDB.clearFormData();
+                  
+                  // Update the car status on the server side to ensure it's properly marked as unreserved
+                  try {
+                    await fetch(`http://localhost:3002/api/cars/${reservedCar.vin}/cancel`, {
+                      method: 'PUT',
+                      headers: {
+                        'Content-Type': 'application/json',
+                      },
+                      body: JSON.stringify({ reserved: false }),
+                    });
+                  } catch (err) {
+                    console.error("Error updating car status:", err);
+                  }
+                  
+                  // Dispatch the event BEFORE showing the modal to ensure data is updated
+                  window.dispatchEvent(new Event("carDataUpdated"));
+                  
                   setModalOverlay(
                     <Modal
                       title="Rental Failed"
@@ -228,14 +251,18 @@ export default function Reservation({ setModalOverlay }) {
                       }}
                     />
                   );
-                  // Clear the reservation from client state
-                  clientDB.cancelReservation();
-                  clientDB.clearFormData();
+                  
+                  // Update local state as well
+                  setCars((prevCars) =>
+                    prevCars.map((car) =>
+                      car.vin === reservedCar.vin ? { ...car, reserved: false } : car
+                    )
+                  );
                   return;
                 }
 
                 // Send rental request to server
-                const response = await fetch('http://Car-rental-backend1-env-1.eba-gs2svizp.us-east-1.elasticbeanstalk.com/api/rentals', {
+                const response = await fetch('http://localhost:3002/api/rentals', {
                   method: 'POST',
                   headers: {
                     'Content-Type': 'application/json',

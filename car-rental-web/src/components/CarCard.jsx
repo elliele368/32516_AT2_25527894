@@ -18,10 +18,13 @@ export default function CarCard({ car, onRent, onCancel }) {
   // Determine if this specific car is reserved by the current client
   // Note: reservedByClient is now passed from the parent component
   const handleClick = async () => {
+    console.log("🚀 ~ handleClick ~ reservedByClient:", reservedByClient);
     if (reserved && reservedByClient && onCancel) {
       onCancel(vin);
-    } else if (!reserved && onRent) {
+      console.log("onCancel");
+    } else if (onRent) {
       onRent(vin);
+      console.log("onRent");
     }
   };
 
@@ -48,11 +51,11 @@ export default function CarCard({ car, onRent, onCancel }) {
                   Reserved
                 </span>
               )}
-              {reserved && !reservedByClient && (
+              {/* {reserved && !reservedByClient && (
                 <span className="flex-shrink-0 bg-[rgba(231,169,76,0.2)] text-yellow-600 text-xs font-normal px-2 py-1 rounded">
-                  Reserved
+                  Reserved by other
                 </span>
-              )}
+              )} */}
             </div>
             <div className="inline-flex gap-2 text-xs text-zinc-700">
               <span className="px-1.5 py-0.5 bg-slate-200/70 rounded">{year}</span>
@@ -97,7 +100,7 @@ export default function CarCard({ car, onRent, onCancel }) {
           )
         ) : (
           <div className="w-28 h-10 px-5 bg-neutral-300 rounded-md shadow-[0px_4px_12px_0px_rgba(0,0,0,0.02)] flex justify-center items-center gap-2 text-white font-semibold text-base">
-            Unavailable
+            Rent
           </div>
         )}
       </div>
