@@ -32,12 +32,13 @@ export default function Reservation({ setModalOverlay }) {
     };
 
     fetchAvailableCars();
+
     
   }, []);
 
   const handleRent = async (vin) => {
     try {
-      const response = await fetch(`http://localhost:3002/api/cars/${vin}/reserve`, {
+      const response = await fetch(`http://Car-rental-backend1-env-1.eba-gs2svizp.us-east-1.elasticbeanstalk.com/api/cars/${vin}/reserve`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -64,7 +65,7 @@ export default function Reservation({ setModalOverlay }) {
 
   const handleCancel = async (vin) => {
     try {
-      const response = await fetch(`http://localhost:3002/api/cars/${vin}/cancel`, {
+      const response = await fetch(`http://Car-rental-backend1-env-1.eba-gs2svizp.us-east-1.elasticbeanstalk.com/api/cars/${vin}/cancel`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -176,7 +177,7 @@ export default function Reservation({ setModalOverlay }) {
 
                 // Send rental request to server with logging for debugging
                 console.log("Sending rental submission:", rentalSubmission);
-                const response = await fetch('http://localhost:3002/api/rentals', {
+                const response = await fetch('http://Car-rental-backend1-env-1.eba-gs2svizp.us-east-1.elasticbeanstalk.com/api/rentals', {
                   method: 'POST',
                   headers: {
                     'Content-Type': 'application/json',
@@ -218,7 +219,7 @@ export default function Reservation({ setModalOverlay }) {
                   if (!responseData.available) {
                     // Call API to remove reserved status
                     try {
-                      const cancelResponse = await fetch(`http://localhost:3002/api/cars/${reservedCar.vin}/cancel`, {
+                      const cancelResponse = await fetch(`http://Car-rental-backend1-env-1.eba-gs2svizp.us-east-1.elasticbeanstalk.com/api/cars/${reservedCar.vin}/cancel`, {
                         method: 'PUT',
                         headers: {
                           'Content-Type': 'application/json',

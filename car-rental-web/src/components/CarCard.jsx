@@ -14,7 +14,7 @@ export default function CarCard({ car, onRent, onCancel }) {
   const handleClick = async () => {
     if (reserved && onCancel) {
       try {
-        const response = await fetch(`http://localhost:3002/api/cars/${car.vin}/cancel`, {
+        const response = await fetch(`http://Car-rental-backend1-env-1.eba-gs2svizp.us-east-1.elasticbeanstalk.com/api/cars/${car.vin}/cancel`, {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',

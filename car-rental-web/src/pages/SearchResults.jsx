@@ -35,7 +35,7 @@ export default function SearchResults({ initialSearch, initialBrandFilter, initi
 
   const handleRent = async (vin) => {
     try {
-      const response = await fetch(`http://localhost:3002/api/cars/${vin}/reserve`, {
+      const response = await fetch(`http://Car-rental-backend1-env-1.eba-gs2svizp.us-east-1.elasticbeanstalk.com/api/cars/${vin}/reserve`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ reserved: true }),
@@ -54,7 +54,7 @@ export default function SearchResults({ initialSearch, initialBrandFilter, initi
 
   const handleCancel = async (vin) => {
     try {
-      const response = await fetch(`http://localhost:3002/api/cars/${vin}/cancel`, {
+      const response = await fetch(`http://Car-rental-backend1-env-1.eba-gs2svizp.us-east-1.elasticbeanstalk.com/api/cars/${vin}/cancel`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ reserved: false }),

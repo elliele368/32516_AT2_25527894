@@ -2,7 +2,7 @@ import axios from 'axios';
 
 // Tạo instance axios với các cấu hình mặc định
 const api = axios.create({
-  baseURL: 'http://localhost:3002',
+  baseURL: 'http://Car-rental-backend1-env-1.eba-gs2svizp.us-east-1.elasticbeanstalk.com',
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json',
